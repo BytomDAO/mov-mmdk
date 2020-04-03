@@ -3,8 +3,8 @@
 import json
 import requests
 
-MOV_BASE_URL = "http://52.82.22.99:3000"
-FLASH_BASE_URL = "http://52.82.22.99:1096"
+MOV_BASE_URL = "http://bcapi.blockmeta.com"
+FLASH_BASE_URL = "http://flashswap.blockmeta.com"
 FLASH_LOCAL_URL = "http://127.0.0.1:1024"
 
 

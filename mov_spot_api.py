@@ -4,8 +4,8 @@ import json
 import requests
 from pybtm import key
 
-REST_MARKET_HOST = "http://52.82.22.99:3000"
-REST_TRADE_HOST = "http://52.82.22.99:3000"
+REST_MARKET_HOST = "http://bcapi.blockmeta.com"
+REST_TRADE_HOST = "http://bcapi.blockmeta.com"
 
 
 class MovApi(object):
