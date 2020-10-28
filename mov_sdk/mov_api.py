@@ -852,6 +852,14 @@ class MovApi(object):
         return self._request("POST", url, params)
 
     def send_flash_swap_order(self, symbol, side, price, volume):
+        '''
+        构造闪兑交易请求
+        :param symbol:
+        :param side:
+        :param price:
+        :param volume:
+        :return:
+        '''
         ret = []
         data = self.build_flash_swap_order(symbol, side, price, volume)
         if data and str(data["code"]) == "200":
