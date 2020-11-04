@@ -26,10 +26,8 @@ class FlashApi(object):
         self.main_address = ""
         self.vapor_address = ""
         self.secret_key = _secret_key
-        self.guid = ""
         self.vapor_address = ""
         if self.secret_key:
-            self.guid = self.get_guid_using_public_key()
             self.main_address, self.vapor_address = get_main_vapor_address(self.secret_key, self.network)
 
         self.local_url = _local_url
@@ -37,17 +35,6 @@ class FlashApi(object):
     @staticmethod
     def mov_format_symbol(symbol):
         return symbol.replace('_', '/').upper()
-
-    def get_guid_using_public_key(self):
-        url = "https://bcapi.bystack.com" + "/api/v2/btm/account/list-wallets"
-        params = {
-            "filter": {"type": "P2PKH"},
-            "pubkey": get_xpub(self.secret_key)
-        }
-        data = self._request("POST", url, params)
-        if data["result"]["data"]:
-            self.guid = data["result"]["data"][0]["guid"]
-        return self.guid
 
     def _request(self, method, url, param):
         method = method.upper()
@@ -73,23 +60,19 @@ class FlashApi(object):
         data = self._request("POST", url, params)
         return data
 
-    def cancel_order(self, symbol, side):
-        '''
-        新版已经不支持这个接口了
-        '''
-        url = self.local_url + "/api/v1/cancel-order"
-        params = {"symbol": self.mov_format_symbol(symbol), "side": side}
+    def cancel_order_by_id(self, order_id):
+        new_local_url = self.local_url.replace('127.0.0.1', 'localhost')
+        url = new_local_url + "/api/v1/cancel-order?order_id={}".format(order_id)
         data = self._request("GET", url, params)
         return data
 
-    def cancel_order_by_id(self, order_id):
-        '''
-        新版接口支持，旧版不支持
-        '''
-        url = self.local_url + "/api/v1/cancel-order"
-        params = {"order_id": order_id}
-        data = self._request("GET", url, params)
-        return data
+    def query_list_orders(self, symbol, side):
+        symbol = self.mov_format_symbol(symbol)
+        side = self.mov_format_symbol(side)
+
+        url = self.local_url + "/api/v1/orders?symbol={}&side={}".format(symbol, side)
+        params = {}
+        return self._request("GET", url, params)
 
     def get_exchange_info(self):
         path = MOV_BASE_URL + "/magnet/v3/common/symbols"
