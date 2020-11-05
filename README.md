@@ -79,7 +79,7 @@ print(api.query_balance())
 write dealer's configure
 
 ```shell
-如果是量化托管，则配置如下
+如果是单签地址做市，则配置如下
 {
     "port": 1058,
     "address": "您的侧链地址",
