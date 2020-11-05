@@ -828,35 +828,6 @@ class MovApi(object):
         }
         return self._request("POST", url, params)
 
-    def make_advanced_inputs_and_outputs(self, data, address):
-        '''
-        通过utxo 构建高级交易的输入与输出
-        :param data:
-        :param volume_decimal:
-        :return:
-        '''
-        inputs = []
-        outputs = []
-        sum_out = defaultdict(int)
-
-        for dic in data:
-            d = {"type": "spend_utxo", "output_id": dic["hash"]}
-            sum_out[dic["asset"]] += int(dic["amount"])
-            inputs.append(d)
-
-        for asset, val in sum_out.items():
-            volume_decimal = self.decimal_dict[asset]
-            amount = ("%.{}f".format(volume_decimal)) % (val / (10 ** volume_decimal))
-            amount = amount.rstrip("0").rstrip(".")
-            dic = {
-                "type": "control_address",
-                "amount": amount,
-                "asset": asset,
-                "address": address
-            }
-            outputs.append(dic)
-        return inputs, outputs
-
     def build_advanced_order(self, inputs, outputs):
         '''
         构建高级高级
@@ -873,29 +844,6 @@ class MovApi(object):
             "forbid_chain_tx": False
         }
         return self._request("POST", url, params)
-
-    def merge_utxo(self, asset, limit=1000):
-        '''
-        用于合并 utxo
-        :param asset:
-        :return:
-        '''
-        return self.inside_transfer_all_utxos_no_fee(asset, self.vapor_address, limit)
-
-    def inside_transfer_all_utxos_no_fee(self, asset, address, limit=1000):
-        '''
-        通过utxo 构建高级交易的输入与输出
-        '''
-        try:
-            data = self.list_utxos(asset, limit)
-            if data and str(data["code"]) == "200":
-                inputs, outputs = self.make_advanced_inputs_and_outputs(data["data"], address)
-                data = self.build_advanced_order(inputs, outputs)
-                if data and str(data["code"]) == "200":
-                    return self.submit_payment(data)
-        except Exception as ex:
-            print(ex)
-        return []
 
     def get_flash_depth(self, symbol, limit=5):
         '''
