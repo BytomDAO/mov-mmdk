@@ -103,6 +103,11 @@ class MovApi(object):
             self.decimal_dict["c4644dd6643475d57ed624f63129ab815f282b61f4bb07646d73423a6e1a1563"] = 6
         return self.all_pairs
 
+    def get_min_volume(self, asset):
+        asset_id = self.asset_id_dict[asset.upper()]
+        decimal_val = self.decimal_dict[asset_id]
+        return 0.1 ** decimal_val
+
     def get_new_secret_key(self):
         '''
         获得一个新的私钥
@@ -452,7 +457,6 @@ class MovApi(object):
     def sign_cross_chain(self, params):
         sign_url = self.host + "/delegation/v1/merchant/sign-crosschain-tx?address={}".format(self.vapor_address)
         data = self._request("POST", sign_url, params)
-        print(data)
         if data and int(data["code"]) == 200:
             return data["data"]
 
@@ -505,13 +509,13 @@ class MovApi(object):
                 ret.append(data)
         return ret
 
-    def cross_chain_in(self, amount):
+    def cross_chain_in(self, asset, amount):
         '''
         跨链跨入
         :param amount:
         :return:
         '''
-        return self.bytom_transfer("btm", amount, "bm1qlp5zd4jqsy8tpz3tldcxuqyjyulqt6d860t3l82n7nmvct3ad34qfktwv7")
+        return self.bytom_transfer(asset, amount, "bm1qlp5zd4jqsy8tpz3tldcxuqyjyulqt6d860t3l82n7nmvct3ad34qfktwv7")
 
     def query_list_orders(self, order_id_list, states=["open", "partial", "canceled", "filled", "submitted"]):
         '''
@@ -824,6 +828,75 @@ class MovApi(object):
         }
         return self._request("POST", url, params)
 
+    def make_advanced_inputs_and_outputs(self, data, address):
+        '''
+        通过utxo 构建高级交易的输入与输出
+        :param data:
+        :param volume_decimal:
+        :return:
+        '''
+        inputs = []
+        outputs = []
+        sum_out = defaultdict(int)
+
+        for dic in data:
+            d = {"type": "spend_utxo", "output_id": dic["hash"]}
+            sum_out[dic["asset"]] += int(dic["amount"])
+            inputs.append(d)
+
+        for asset, val in sum_out.items():
+            volume_decimal = self.decimal_dict[asset]
+            amount = ("%.{}f".format(volume_decimal)) % (val / (10 ** volume_decimal))
+            amount = amount.rstrip("0").rstrip(".")
+            dic = {
+                "type": "control_address",
+                "amount": amount,
+                "asset": asset,
+                "address": address
+            }
+            outputs.append(dic)
+        return inputs, outputs
+
+    def build_advanced_order(self, inputs, outputs):
+        '''
+        构建高级高级
+        :param inputs:
+        :param outputs:
+        :return:
+        '''
+        url = self.host + "/vapor/v3/merchant/build-advanced-tx?address={}".format(self.vapor_address)
+        params = {
+            "fee": "0",
+            "confirmations": 1,
+            "inputs": inputs,
+            "outputs": outputs,
+            "forbid_chain_tx": False
+        }
+        return self._request("POST", url, params)
+
+    def merge_utxo(self, asset, limit=1000):
+        '''
+        用于合并 utxo
+        :param asset:
+        :return:
+        '''
+        return self.inside_transfer_all_utxos_no_fee(asset, self.vapor_address, limit)
+
+    def inside_transfer_all_utxos_no_fee(self, asset, address, limit=1000):
+        '''
+        通过utxo 构建高级交易的输入与输出
+        '''
+        try:
+            data = self.list_utxos(asset, limit)
+            if data and str(data["code"]) == "200":
+                inputs, outputs = self.make_advanced_inputs_and_outputs(data["data"], address)
+                data = self.build_advanced_order(inputs, outputs)
+                if data and str(data["code"]) == "200":
+                    return self.submit_payment(data)
+        except Exception as ex:
+            print(ex)
+        return []
+
     def get_flash_depth(self, symbol, limit=5):
         '''
         symbol: BTM/ETH
@@ -841,7 +914,7 @@ class MovApi(object):
         :param volume:
         :return:
         '''
-        #self.flash_url = "http://52.82.57.178:3005"
+        #self.flash_url = "http://52.82.57.178:3002"
         url = self.flash_url + "/flashswap/v3/swap?address={}".format(self.vapor_address)
         params = {
             "amount": str(volume),
@@ -853,7 +926,7 @@ class MovApi(object):
 
     def send_flash_swap_order(self, symbol, side, price, volume):
         '''
-        构造闪兑交易请求
+        构建闪兑交易请求
         :param symbol:
         :param side:
         :param price:
