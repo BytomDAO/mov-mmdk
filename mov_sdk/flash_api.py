@@ -13,7 +13,7 @@ FLASH_LOCAL_URL = "http://127.0.0.1:1024"
 
 class FlashApi(object):
 
-    def __init__(self, _secret_key, _local_url=FLASH_LOCAL_URL, network="mainnet"):
+    def __init__(self, _local_url=FLASH_LOCAL_URL):
         self.headers = {
             'Content-Type': 'application/json; charset=utf-8',
             'Accept': 'application/json',
@@ -21,15 +21,6 @@ class FlashApi(object):
         }
 
         self.session = requests.session()
-
-        self.network = network
-        self.main_address = ""
-        self.vapor_address = ""
-        self.secret_key = _secret_key
-        self.vapor_address = ""
-        if self.secret_key:
-            self.main_address, self.vapor_address = get_main_vapor_address(self.secret_key, self.network)
-
         self.local_url = _local_url
 
     @staticmethod
@@ -73,19 +64,6 @@ class FlashApi(object):
         url = self.local_url + "/api/v1/orders?symbol={}&side={}".format(symbol, side)
         params = {}
         return self._request("GET", url, params)
-
-    def get_exchange_info(self):
-        path = MOV_BASE_URL + "/magnet/v3/common/symbols"
-        return self._request("GET", path, {})
-
-    def get_balance(self):
-        param = {"address": self.vapor_address}
-        url = MOV_BASE_URL + "/vapor/v3/account/address"
-        return self._request("GET", url, param)
-
-    def get_orders(self, symbol, side):
-        url = self.local_url + "/api/v1/orders?symbol={}&side={}".format(symbol, side)
-        return self._request("GET", url, {})
 
 
 if __name__ == "__main__":

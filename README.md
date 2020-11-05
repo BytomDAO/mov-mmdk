@@ -79,14 +79,55 @@ print(api.query_balance())
 write dealer's configure
 
 ```shell
+如果是量化托管，则配置如下
 {
-	"port": 1024,
-	"bycoin_url": "https://bcapi.movpai.com",
-	"xprv": "您的私钥",
-	"guid": "联系我们获得",
-	"flash_swap_url": "ws://flashswap.movpai.com/api/v1/dealer",
-	"log_level": "debug"
+    "port": 1058,
+    "address": "您的侧链地址",
+    "xprv": "您的私钥",
+    "bycoin_url": "https://ex.movapi.com",
+    "flash_swap_url": "172.19.113.215:50052",
+    "mnemonic": "您的助记词",
+    "derive_rule": {
+        "account_idx": 1,
+        "address_idx": 1
+    },
+    "network": "mainnet",
+    "logs": {
+        "rotate_time": "24h",
+        "max_age": "72h"
+    }
 }
+
+
+如果是三方多签地址做市，则配置如下
+{
+    "port": 1024,
+    "address": "您的侧链多签地址",
+    "xprv": "您的私钥",
+    "bycoin_url": "https://ex.movapi.com",
+    "flash_swap_url": "172.19.113.215:50052",
+    "mnemonic": "您的助记词",
+    "derive_rule": {
+        "account_idx": 1,
+        "address_idx": 1
+    },
+    "quant_mode": {
+        "quant_delegation_url": "https://ex.movapi.com/delegation",
+        "funder_pubkey": "三方托管生成的资方公钥",
+        "attester_pubkey": "三方托管生成的公钥"
+    },
+    "network": "mainnet",
+    "logs": {
+        "rotate_time": "24h",
+        "max_age": "72h"
+    }
+}
+
+port 是本地使用的端口号,默认使用1024
+derive_rule 是私钥的派生路径，原则上不用修改
+flash_swap_url 闪兑服务器地址
+quant_mode 是量化端口时要设置的配置
+
 ```
 
 ```python
@@ -99,15 +140,14 @@ then run the dealer
 ## 2.Running 
 
 ```python
-client = FlashApi("", _local_url=FLASH_LOCAL_URL)
-print(client.guid)
+# FLASH_LOCAL_URL = "http://127.0.0.1:1024" , 1024是端口号
+client = FlashApi(_local_url=FLASH_LOCAL_URL)
 print(client.get_depth("btm_usdt"))
 print(client.send_order(symbol="btm_usdt", side="sell", price="5", amount="0.3"))
-print(client.cancel_order(symbol="eth_usdt", side="buy"))
-print(client.cancel_order(symbol="eth_usdt", side="sell"))
-print(client.query_balance())
-print(client.send_order(symbol="eth_usdt", side="sell", price="0.33", amount="0.3"))
 print(client.send_order(symbol="eth_usdt", side="buy", price="0.22", amount="1"))
+print(client.cancel_order_by_id(symbol="eth_usdt", order_id=1))
+print(client.query_balance())
+print(client.query_list_orders(symbol="btm_usdt", side="sell"))
 ```
 
 # MOV DELEGATION API DOC
