@@ -6,8 +6,7 @@ import requests
 from .key import get_xpub
 from .receiver import get_main_vapor_address
 
-MOV_BASE_URL = "https://bcapi.movapi.com"
-FLASH_BASE_URL = "https://flashswap.bystack.com"
+FLASH_BASE_URL = "https://ex.movapi.com"
 FLASH_LOCAL_URL = "http://127.0.0.1:1024"
 
 
