@@ -40,7 +40,7 @@ class FlashApi(object):
             return None
 
     def get_depth(self, symbol):
-        url = FLASH_BASE_URL + "/api/v1/market-depth?symbol={}".format(symbol.replace('_', '/').upper())
+        url = FLASH_BASE_URL + "/flashswap/v3/market-depth?symbol={}".format(symbol.replace('_', '/').upper())
         data = self._request("GET", url, {})
         return data
 
