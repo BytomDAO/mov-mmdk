@@ -57,8 +57,6 @@ class FlashApi(object):
 
     def query_list_orders(self, symbol, side):
         symbol = self.mov_format_symbol(symbol)
-        side = self.mov_format_symbol(side)
-
         url = self.local_url + "/api/v1/orders?symbol={}&side={}".format(symbol, side)
         params = {}
         return self._request("GET", url, params)
