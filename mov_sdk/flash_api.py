@@ -11,7 +11,6 @@ FLASH_LOCAL_URL = "http://127.0.0.1:1024"
 
 
 class FlashApi(object):
-
     def __init__(self, _local_url=FLASH_LOCAL_URL):
         self.headers = {
             'Content-Type': 'application/json; charset=utf-8',
