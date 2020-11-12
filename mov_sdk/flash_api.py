@@ -53,7 +53,7 @@ class FlashApi(object):
     def cancel_order_by_id(self, order_id):
         new_local_url = self.local_url.replace('127.0.0.1', 'localhost')
         url = new_local_url + "/api/v1/cancel-order?order_id={}".format(order_id)
-        data = self._request("GET", url, params)
+        data = self._request("GET", url, {})
         return data
 
     def query_list_orders(self, symbol, side):
