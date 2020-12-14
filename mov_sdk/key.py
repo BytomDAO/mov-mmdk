@@ -520,6 +520,36 @@ def xprv_sign(xprv_hexstr, message_hexstr):
     return signature_hexstr
 
 
+def xprv_my_sign(xprv_hexstr, message_bytes):
+    xprv_hexstr = get_expanded_private_key(xprv_hexstr)
+    xprv_bytes = bytes.fromhex(xprv_hexstr)
+    data_bytes = xprv_bytes[32:64] + message_bytes
+
+    message_digest = hashlib.sha512(data_bytes).digest()
+    message_digest = sc_reduce32(message_digest.hex().encode())
+    message_digest = bytes.fromhex(message_digest.decode())
+    message_digest_reduced = message_digest[0:32]
+
+    scalar = decodeint(message_digest_reduced)
+    encoded_r = encodepoint(scalarmultbase(scalar))
+    xpub_hexstr = get_xpub(xprv_hexstr)
+    xpub_bytes = bytes.fromhex(xpub_hexstr)
+    hram_digest_data = encoded_r + xpub_bytes[:32] + message_bytes
+
+    hram_digest = hashlib.sha512(hram_digest_data).digest()
+    hram_digest = sc_reduce32(hram_digest.hex().encode())
+    hram_digest = bytes.fromhex(hram_digest.decode())
+    hram_digest_reduced = hram_digest[0:32]
+
+    sk = xprv_bytes[:32]
+    s = sc_muladd(hram_digest_reduced.hex().encode(), sk.hex().encode(), message_digest_reduced.hex().encode())
+    s = bytes.fromhex(s.decode())
+
+    signature_bytes = encoded_r + s
+    signature_hexstr = signature_bytes.hex()
+    return signature_hexstr
+
+
 def get_new_key(entropy_hexstr=None, mnemonic_str=None):
     if (entropy_hexstr is None) and (mnemonic_str is None):
         entropy_hexstr = get_entropy()

@@ -6,6 +6,7 @@ import time
 import requests
 from collections import defaultdict
 from pprint import pprint
+from .key import xprv_my_sign
 from .key import get_xpub, get_child_xpub, get_seed, get_child_xprv, get_root_xprv, xprv_sign
 from .key import get_entropy, get_mnemonic
 from .receiver import get_main_vapor_address, get_public_key
@@ -740,6 +741,46 @@ class MovApi(object):
         if data and int(data["code"]) == 200:
             return data["data"]
 
+    def get_super_asset_proportion(self, symbol):
+        '''
+        获得某个币池的资产比例
+        :param symbol:
+        :return:
+        '''
+        path = self.host + "/superconducting/v1/asset-proportion?symbol={}".format(symbol)
+        return self._request("GET", path, {})
+
+    def get_multi_asset_available(self, address):
+        '''
+        获得超导多资产可用余额信息
+        :param address:
+        :return:
+        '''
+        path = self.host + "/superconducting/v1/multi-asset-available?address={}".format(self.vapor_address)
+        return self._request("GET", path, {})
+
+    def submit_multi_asset_withdralal(self, symbol, amount):
+        '''
+        双资产移除流动性
+        :param symbol: 代币
+        :param amount: 移出多少个份额
+        :return:
+        '''
+        proportion_info = self.get_super_asset_proportion(symbol)
+        if self.check_msg(proportion_info):
+            params = {
+                "pubkey": get_xpub(self.secret_key),
+                "symbol": symbol,
+                "quantity_proportion": proportion_info["data"],
+                "amount": str(amount),
+                "time_stamp": self.generate_timestamp()
+            }
+            data = json.dumps(params).replace(' ', '').encode('utf-8')
+            signature_data = xprv_my_sign(self.secret_key, data)
+            path = self.host + "/superconducting/v1/double-asset-withdrawal?signature={}&address={}".format(
+                signature_data, self.vapor_address)
+            return self._request("POST", path, params)
+
     def build_super_exchange_order(self, symbol, side, price, volume):
         '''
         构建超导交易订单
@@ -891,5 +932,8 @@ class MovApi(object):
                 ret.append(data)
             return ret
         return []
+
+    def check_msg(self, data):
+        return data and str(data["code"]) == "200"
 
 
