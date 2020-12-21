@@ -854,14 +854,14 @@ class MovApi(object):
         '''
         获得vapor chain status状态
         '''
-        url = "http://ex.movapi.com/api/v2/vapor/q/chain-status"
+        url = "http://ex.movapi.com/vapor/v3/q/chain-status"
         return self._request("GET", url, {})
 
     def get_btm_chain_status(self):
         '''
         获得btm chain status状态
         '''
-        url = "http://ex.movapi.com/api/v2/btm/q/chain-status"
+        url = "http://ex.movapi.com/bytom/v3/q/chain-status"
         return self._request("GET", url, {})
 
     def list_utxos(self, asset, limit=10):
