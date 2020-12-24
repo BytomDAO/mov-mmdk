@@ -910,7 +910,7 @@ class MovApi(object):
 
     def build_flash_swap_order(self, symbol, side, price, volume):
         '''
-        构建超导交易请求
+        构建闪兑交易请求
         :param symbol:
         :param side:
         :param price:
