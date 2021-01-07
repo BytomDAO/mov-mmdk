@@ -716,6 +716,13 @@ class MovApi(object):
         path = self.host + "/superconducting/v2/symbols"
         return self._request("GET", path, {})
 
+    def get_super_v2_exchange_info(self):
+        '''
+        超导新接口地址
+        '''
+        path = "https://supertx.movapi.com/v1/symbols"
+        return self._request("GET", path, {})
+
     def get_super_exchange_order_history(self, start=0, limit=1000):
         '''
         获得超导历史交易订单
