@@ -713,7 +713,7 @@ class MovApi(object):
         获得超导交易所信息
         :return:
         '''
-        path = self.host + "/superconducting/v1/symbols"
+        path = self.host + "/superconducting/v2/symbols"
         return self._request("GET", path, {})
 
     def get_super_exchange_order_history(self, start=0, limit=1000):
