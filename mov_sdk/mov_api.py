@@ -234,6 +234,13 @@ class MovApi(object):
         path = self.host + "/magnet/v3/common/symbols"
         return self._request("GET", path, {})
 
+    def get_assets(self):
+        '''
+        获得资产细节信息
+        '''
+        path = self.host + "/vapor/v3/q/assets"
+        return self._request("POST", path, {})
+
     def get_depth(self, symbol, limit=5):
         '''
         获得磁力兑换深度
