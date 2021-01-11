@@ -12,7 +12,9 @@ from .key import get_entropy, get_mnemonic
 from .receiver import get_main_vapor_address, get_public_key
 from .utxo_manager import address_to_script, Net, Chain
 
-REST_TRADE_HOST = "https://ex.movapi.com"
+MOV_REST_TRADE_HOST = "https://ex.movapi.com"
+SUPER_REST_TRADE_HOST = "https://supertx.movapi.com"
+
 
 # networks = ["mainnet", "testnet", "solonet"]
 
@@ -21,24 +23,30 @@ derivation_path = ['2c000000', '99000000', '01000000', '00000000', '01000000']
 
 class MovApi(object):
     def __init__(self, secret_key="", network=Net.MAIN.value, third_address="", third_public_key="", mnemonic_str="",
-                 _REST_TRADE_HOST="", _BYCOIN_URL="", _third_use_child=False,
+                 _MOV_REST_TRADE_HOST="", _BYCOIN_URL="", _SUPER_REST_TRADE_HOST="", _third_use_child=False,
                  _bitcoin_address="", _third_main_address=""):
         self.headers = {
             'Content-Type': 'application/json; charset=utf-8',
             'Accept': 'application/json',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36'
         }
-        if _REST_TRADE_HOST:
-            self.host = _REST_TRADE_HOST
-            self.bycoin_url = _REST_TRADE_HOST
-            self.flash_url = _REST_TRADE_HOST
+        if _MOV_REST_TRADE_HOST:
+            self.host = _MOV_REST_TRADE_HOST
+            self.bycoin_url = _MOV_REST_TRADE_HOST
+            self.flash_url = _MOV_REST_TRADE_HOST
         else:
-            self.host = REST_TRADE_HOST
-            self.bycoin_url = REST_TRADE_HOST
-            self.flash_url = REST_TRADE_HOST
+            self.host = MOV_REST_TRADE_HOST
+            self.bycoin_url = MOV_REST_TRADE_HOST
+            self.flash_url = MOV_REST_TRADE_HOST
 
         if _BYCOIN_URL:
             self.bycoin_url = _BYCOIN_URL
+
+        if _SUPER_REST_TRADE_HOST:
+            self.super_url = _SUPER_REST_TRADE_HOST
+        else:
+            self.super_url = SUPER_REST_TRADE_HOST
+
         self.session = requests.session()
 
         self.network = network
@@ -98,10 +106,13 @@ class MovApi(object):
                         if quote_asset["decimals"]:
                             self.decimal_dict[quote_asset["asset_id"]] = quote_asset["decimals"]
 
-            # dai
-            self.decimal_dict["25f2069140fa3ff4d6e0dc1d0fcaa11ace01eb721f115f0f1a5a3782db597fb1"] = 6
-            # usdc
-            self.decimal_dict["c4644dd6643475d57ed624f63129ab815f282b61f4bb07646d73423a6e1a1563"] = 6
+            data = self.get_assets()
+            if data:
+                for dic in data["data"]:
+                    self.asset_id_dict[dic["symbol"].upper()] = dic["asset_id"]
+                    self.id_asset_dict[dic["asset_id"]] = dic["symbol"].upper()
+                    self.decimal_dict[dic["asset_id"]] = dic["decimals"]
+
         return self.all_pairs
 
     def get_min_volume(self, asset):
@@ -713,14 +724,7 @@ class MovApi(object):
         获得超导交易所信息
         :return:
         '''
-        path = self.host + "/superconducting/v2/symbols"
-        return self._request("GET", path, {})
-
-    def get_super_v2_exchange_info(self):
-        '''
-        超导新接口地址
-        '''
-        path = "https://supertx.movapi.com/v1/symbols"
+        path = self.super_url + "/v1/symbols"
         return self._request("GET", path, {})
 
     def get_super_exchange_order_history(self, start=0, limit=1000):
@@ -728,7 +732,7 @@ class MovApi(object):
         获得超导历史交易订单
         :return:
         '''
-        path = self.host + "/superconducting/v1/exchange-order-history?address={}&start={}&limit={}".format(self.vapor_address, start, limit)
+        path = self.super_url + "/v1/exchange-order-history?address={}&start={}&limit={}".format(self.vapor_address, start, limit)
         return self._request("GET", path, {})
 
     def get_super_exchange_rate(self, symbol, volume, side):
@@ -739,7 +743,7 @@ class MovApi(object):
         :param side:
         :return:
         '''
-        path = self.host + "/superconducting/v1/exchange-rate?symbol={}&amount={}&side={}".format(symbol, volume, side)
+        path = self.super_url + "/v1/exchange-rate?symbol={}&amount={}&side={}".format(symbol, volume, side)
         return self._request("GET", path, {})
 
     def sign_delegation_superconducting(self, params):
@@ -754,7 +758,7 @@ class MovApi(object):
         :param symbol:
         :return:
         '''
-        path = self.host + "/superconducting/v1/asset-proportion?symbol={}".format(symbol)
+        path = self.super_url + "/v1/asset-proportion?symbol={}".format(symbol)
         return self._request("GET", path, {})
 
     def get_multi_asset_available(self, address):
@@ -763,7 +767,7 @@ class MovApi(object):
         :param address:
         :return:
         '''
-        path = self.host + "/superconducting/v1/multi-asset-available?address={}".format(self.vapor_address)
+        path = self.super_url + "/v1/multi-asset-available?address={}".format(self.vapor_address)
         return self._request("GET", path, {})
 
     def submit_multi_asset_withdralal(self, symbol, amount):
@@ -784,8 +788,7 @@ class MovApi(object):
             }
             data = json.dumps(params).replace(' ', '').encode('utf-8')
             signature_data = xprv_my_sign(self.secret_key, data)
-            path = self.host + "/superconducting/v1/double-asset-withdrawal?signature={}&address={}".format(
-                signature_data, self.vapor_address)
+            path = self.super_url + "/v1/submit-multi-asset-withdrawal?signature={}&address={}".format(signature_data, self.vapor_address)
             return self._request("POST", path, params)
 
     def build_super_exchange_order(self, symbol, side, price, volume):
@@ -797,7 +800,7 @@ class MovApi(object):
         :param volume:
         :return:
         '''
-        path = self.host + "/superconducting/v1/build-exchange?address={}".format(self.vapor_address)
+        path = self.super_url + "/v1/build-exchange-request?address={}".format(self.vapor_address)
         params = {
             "pubkey": self.public_key,
             "symbol": symbol,
@@ -814,7 +817,7 @@ class MovApi(object):
         :return:
         '''
         ret = []
-        url = self.host + "/superconducting/v1/submit-exchange?address={}".format(self.vapor_address)
+        url = self.super_url + "/v1/submit-exchange-request?address={}".format(self.vapor_address)
         for info in data["data"]:
             params = self.mov_sign(info, is_build_order=True)
             if self.third_address:
@@ -845,7 +848,7 @@ class MovApi(object):
         获得超导池各个池子的信息
         :return:
         '''
-        url = self.host + "/superconducting/v1/pool-info"
+        url = self.super_url + "/v1/pool-info"
         return self._request("GET", url, {})
 
     def get_transaction(self, tx_hash):
