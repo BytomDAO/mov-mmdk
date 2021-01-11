@@ -101,11 +101,6 @@ class MovApi(object):
                         self.id_asset_dict[base_asset["asset_id"]] = base_asset["symbol"].upper()
                         self.id_asset_dict[quote_asset["asset_id"]] = quote_asset["symbol"].upper()
 
-                        if base_asset["decimals"]:
-                            self.decimal_dict[base_asset["asset_id"]] = base_asset["decimals"]
-                        if quote_asset["decimals"]:
-                            self.decimal_dict[quote_asset["asset_id"]] = quote_asset["decimals"]
-
             data = self.get_assets()
             if data:
                 for dic in data["data"]:
