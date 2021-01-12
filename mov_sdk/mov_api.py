@@ -763,6 +763,13 @@ class MovApi(object):
         path = self.super_url + "/v1/asset-proportion?symbol={}".format(symbol)
         return self._request("GET", path, {})
 
+    def get_single_asset_available(self):
+        '''
+        获得超导单资产可用余额信息
+        '''
+        path = self.super_url + "/v1/single-asset-available?address={}".format(self.vapor_address)
+        return self._request("GET", path, {})
+
     def get_multi_asset_available(self, address):
         '''
         获得超导多资产可用余额信息
@@ -771,6 +778,55 @@ class MovApi(object):
         '''
         path = self.super_url + "/v1/multi-asset-available?address={}".format(self.vapor_address)
         return self._request("GET", path, {})
+
+    def build_multi_asset_deposit(self, symbol, quantity_proportion, amount):
+        '''
+        构建超导双币转入
+        '''
+        path = self.super_url + "/v1/build-multi-asset-deposit?address={}".format(self.vapor_address)
+        params = {
+            "symbol": symbol,
+            "quantity_proportion": str(quantity_proportion),
+            "amount": str(amount)
+        }
+        return self._request("POST", path, params)
+
+    def build_single_asset_deposit(self, symbol, amount, currency):
+        '''
+        构建超导单币转入
+        '''
+        path = self.super_url + "/v1/build-single-asset-deposit?address={}".format(self.vapor_address)
+        params = {
+            "symbol": symbol,
+            "amount": amount,
+            "currency": currency
+        }
+        return self._request("POST", path, params)
+
+    def submit_deposit(self, raw_transaction, signatures):
+        path = self.super_url + "/v1/submit-deposit?address={}".format(self.vapor_address)
+        params = {
+            "raw_transaction": raw_transaction,
+            "signatures": signatures
+        }
+        return self._request("POST", path, params)
+
+    def submit_single_asset_withdralal(self, symbol, amount, currency):
+        '''
+        单资产移除流动性
+        '''
+        params = {
+            "pubkey": get_xpub(self.secret_key),
+            "symbol": symbol,
+            "amount": str(amount),
+            "currency": str(currency),
+            "timestamp": self.generate_timestamp()
+        }
+        data = json.dumps(params).replace(' ', '').encode('utf-8')
+        signature_data = xprv_my_sign(self.secret_key, data)
+        path = self.super_url + "/v1/submit-single-asset-withdrawal?signature={}&address={}".\
+            format(signature_data, self.vapor_address)
+        return self._request("POST", path, params)
 
     def submit_multi_asset_withdralal(self, symbol, amount):
         '''
@@ -786,7 +842,7 @@ class MovApi(object):
                 "symbol": symbol,
                 "quantity_proportion": proportion_info["data"],
                 "amount": str(amount),
-                "time_stamp": self.generate_timestamp()
+                "timestamp": self.generate_timestamp()
             }
             data = json.dumps(params).replace(' ', '').encode('utf-8')
             signature_data = xprv_my_sign(self.secret_key, data)
