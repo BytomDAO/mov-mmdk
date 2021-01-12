@@ -804,6 +804,9 @@ class MovApi(object):
         return self._request("POST", path, params)
 
     def submit_deposit(self, raw_transaction, signatures):
+        '''
+        提交超导存储转入请求
+        '''
         path = self.super_url + "/v1/submit-deposit?address={}".format(self.vapor_address)
         params = {
             "raw_transaction": raw_transaction,
