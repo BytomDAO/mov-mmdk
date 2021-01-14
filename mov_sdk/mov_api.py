@@ -14,7 +14,7 @@ from .utxo_manager import address_to_script, Net, Chain
 
 MOV_REST_TRADE_HOST = "https://ex.movapi.com"
 SUPER_REST_TRADE_HOST = "https://supertx.movapi.com"
-
+DELEGATION_REST_TRADE_HOST = "https://ex.movapi.com/delegation"
 
 # networks = ["mainnet", "testnet", "solonet"]
 
@@ -23,8 +23,8 @@ derivation_path = ['2c000000', '99000000', '01000000', '00000000', '01000000']
 
 class MovApi(object):
     def __init__(self, secret_key="", network=Net.MAIN.value, third_address="", third_public_key="", mnemonic_str="",
-                 _MOV_REST_TRADE_HOST="", _BYCOIN_URL="", _SUPER_REST_TRADE_HOST="", _third_use_child=False,
-                 _bitcoin_address="", _third_main_address=""):
+                 _MOV_REST_TRADE_HOST="", _BYCOIN_URL="", _SUPER_REST_TRADE_HOST="", _DELEGATIOIN_REST_TRADE_HOST="",
+                 _third_use_child=False, _bitcoin_address="", _third_main_address=""):
         self.headers = {
             'Content-Type': 'application/json; charset=utf-8',
             'Accept': 'application/json',
@@ -46,6 +46,11 @@ class MovApi(object):
             self.super_url = _SUPER_REST_TRADE_HOST
         else:
             self.super_url = SUPER_REST_TRADE_HOST
+
+        if _DELEGATIOIN_REST_TRADE_HOST:
+            self.delegation_url = _DELEGATIOIN_REST_TRADE_HOST
+        else:
+            self.delegation_url = DELEGATION_REST_TRADE_HOST
 
         self.session = requests.session()
 
@@ -368,7 +373,7 @@ class MovApi(object):
         :return:
         '''
         ret = []
-        url = self.host + "/delegation/v1/merchant/submit-place-order-tx?address={}".format(self.third_address)
+        url = self.delegation_url + "/v1/merchant/submit-place-order-tx?address={}".format(self.third_address)
         for info in data["data"]:
             params = self.mov_sign(info)
             data = self._request("POST", url, params)
@@ -399,7 +404,7 @@ class MovApi(object):
         if data:
             if str(data["code"]) == "200":
                 if self.third_address:
-                    path2 = self.host + "/delegation/v1/merchant/submit-cancel-order-tx?address={}".format(
+                    path2 = self.delegation_url + "/v1/merchant/submit-cancel-order-tx?address={}".format(
                         self.third_address)
                     data = self._send_cancel_sign(path2, data)
                 else:
@@ -438,8 +443,8 @@ class MovApi(object):
             params = self.mov_sign(info)
             if self.third_address:
                 data = self._request("POST",
-                                     "{}/delegation/v1/merchant/submit-withdrawal-tx?address={}".format(
-                                         self.host,
+                                     "{}/v1/merchant/submit-withdrawal-tx?address={}".format(
+                                         self.delegation_url,
                                          self.vapor_address),
                                      param=params)
             else:
@@ -469,7 +474,7 @@ class MovApi(object):
         return []
 
     def sign_cross_chain(self, params):
-        sign_url = self.host + "/delegation/v1/merchant/sign-crosschain-tx?address={}".format(self.vapor_address)
+        sign_url = self.delegation_url + "/v1/merchant/sign-crosschain-tx?address={}".format(self.vapor_address)
         data = self._request("POST", sign_url, params)
         if data and int(data["code"]) == 200:
             return data["data"]
@@ -684,7 +689,7 @@ class MovApi(object):
             "funder_pubkey": funder_pubkey,
             "quant_pubkey": quant_pubkey
         }
-        path = self.host + "/delegation/v1/account/create-wallet"
+        path = self.delegation_url + "/v1/account/create-wallet"
         return self._request("POST", path, param)
 
     def add_white_list_address(self, use_address, white_address):
@@ -699,7 +704,7 @@ class MovApi(object):
         }
         timestamp = self.generate_timestamp()
         signature = self.get_signature("add-white-list-address", use_address, white_address, timestamp)
-        path = self.host + "/delegation/v1/account/add-white-list-address?address={}&timestamp={}&signature={}".format(
+        path = self.delegation_url + "/v1/account/add-white-list-address?address={}&timestamp={}&signature={}".format(
             use_address, timestamp, signature
         )
         return self._request("POST", path, param)
@@ -716,7 +721,7 @@ class MovApi(object):
         }
         timestamp = self.generate_timestamp()
         signature = self.get_signature("del-white-list-address", use_address, white_address, timestamp)
-        path = self.host + "/delegation/v1/account/del-white-list-address?address={}&timestamp={}&signature={}".format(
+        path = self.delegation_url + "/v1/account/del-white-list-address?address={}&timestamp={}&signature={}".format(
             use_address, timestamp, signature
         )
         return self._request("POST", path, param)
@@ -749,7 +754,7 @@ class MovApi(object):
         return self._request("GET", path, {})
 
     def sign_delegation_superconducting(self, params):
-        sign_url = self.host + "/delegation/v1/merchant/sign-superconducting-tx?address={}".format(self.vapor_address)
+        sign_url = self.delegation_url + "/v1/merchant/sign-superconducting-tx?address={}".format(self.vapor_address)
         data = self._request("POST", sign_url, params)
         if data and int(data["code"]) == 200:
             return data["data"]
