@@ -391,6 +391,13 @@ class MovApi(object):
         data = self._request("POST", url, params)
         return data
 
+    def get_mov_reference_price(self, symbol):
+        '''
+        得到磁力交易对的参考价格
+        '''
+        url = self.host + "/magnet/v3/market/reference-price?symbol={}".format(symbol)
+        return self._request("GET", url, {})
+
     def cancel_order(self, order_id):
         '''
         磁力撤单
@@ -504,6 +511,13 @@ class MovApi(object):
                                          param=params)
                     ret.append(data)
         return ret
+
+    def cross_out_fee(self, asset):
+        '''
+        跨链费用
+        '''
+        path = self.host + "/vapor/v3/q/cross-out-fee?symbol={}".format(asset.lower())
+        return self._request("GET", path, {})
 
     def bytom_transfer(self, asset, amount, address):
         '''
