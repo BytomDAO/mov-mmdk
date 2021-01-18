@@ -1037,17 +1037,18 @@ class MovApi(object):
             return ret
         return []
 
-    def build_payment(self, asset, amount, to_address):
+    def build_payment(self, asset, amount, from_address, to_address):
         '''
         构建交易
         :param asset:
         :param amount:
+        :param from_address:
         :param to_address:
         :return:
         '''
         params = self.make_transfer_params(asset, amount, to_address)
         return self._request("POST", "{}/vapor/v3/merchant/build-payment?address={}".
-                             format(self.host, self.vapor_address), param=params)
+                             format(self.host, from_address), param=params)
 
     def check_msg(self, data):
         return data and str(data["code"]) == "200"
