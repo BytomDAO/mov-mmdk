@@ -550,6 +550,27 @@ class MovApi(object):
         '''
         return self.bytom_transfer(asset, amount, "bm1qlp5zd4jqsy8tpz3tldcxuqyjyulqt6d860t3l82n7nmvct3ad34qfktwv7")
 
+    def get_crosschain_status(self, asset_id, tx_hash, side):
+        '''
+        获得跨链状态
+        :param asset_id:
+        :param tx_hash:
+        :param side:
+        :return:
+        '''
+        if side == "out":
+            param = {
+                "asset_id": asset_id,
+                "from_tx_hash": tx_hash
+            }
+        elif side == "in":
+            param = {
+                "asset_id": asset_id,
+                "to_tx_hash": tx_hash
+            }
+        path = self.host + "/federation/v1/get-crosschain-status"
+        return self._request("POST", path, param)
+
     def query_list_orders(self, order_id_list, states=["open", "partial", "canceled", "filled", "submitted"]):
         '''
         查询磁力订单
