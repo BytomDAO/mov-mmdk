@@ -948,11 +948,9 @@ class MovApi(object):
         :param limit:
         :return:
         '''
-        url = self.host + "bytom/v3/merchant/transactions"
+        url = self.host + "/bytom/v3/merchant/transactions?address={}&start={}&limit={}".format(self.main_address, start, limit)
         params = {
-            "address": self.main_address,
-            "start": start,
-            "limit": limit
+            "pubkey": self.public_key
         }
         return self._request("POST", url, params)
 
