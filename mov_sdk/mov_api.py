@@ -940,7 +940,7 @@ class MovApi(object):
         url = self.host + "/vapor/v3/merchant/transaction?tx_hash={}".format(tx_hash)
         return self._request("GET", url, {})
 
-    def list_main_transactions(self, start=0, limit=10):
+    def list_main_transactions(self, start=0, limit=1000):
         '''
         列出主链交易
         :param address:
