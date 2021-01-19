@@ -942,16 +942,16 @@ class MovApi(object):
 
     def get_vapor_chain_status(self):
         '''
-        获得vapor chain status状态
+        获得侧链状态
         '''
-        url = "http://ex.movapi.com/vapor/v3/q/chain-status"
+        url = self.host + "/vapor/v3/q/chain-status"
         return self._request("GET", url, {})
 
     def get_btm_chain_status(self):
         '''
-        获得btm chain status状态
+        获得主链状态
         '''
-        url = "http://ex.movapi.com/bytom/v3/q/chain-status"
+        url = self.host + "/bytom/v3/q/chain-status"
         return self._request("GET", url, {})
 
     def list_utxos(self, asset, limit=10):
@@ -1048,6 +1048,18 @@ class MovApi(object):
         params = self.make_transfer_params(asset, amount, to_address)
         return self._request("POST", "{}/bytom/v3/merchant/build-payment?address={}".
                              format(self.host, self.main_address), param=params)
+
+    def build_vapor_chain_payment(self, asset, amount, to_address):
+        '''
+        构建侧链转账
+        :param asset:
+        :param amount:
+        :param to_address:
+        :return:
+        '''
+        params = self.make_transfer_params(asset, amount, to_address)
+        return self._request("POST", "{}/vapor/v3/merchant/build-payment?address={}".
+                             format(self.host, self.vapor_address), param=params)
 
     def check_msg(self, data):
         return data and str(data["code"]) == "200"
