@@ -933,11 +933,20 @@ class MovApi(object):
 
     def get_transaction(self, tx_hash):
         '''
-        通过哈希获得某个交易的信息
+        通过哈希获得侧链某个交易的信息
         :param tx_hash:
         :return:
         '''
         url = self.host + "/vapor/v3/merchant/transaction?tx_hash={}".format(tx_hash)
+        return self._request("GET", url, {})
+
+    def get_main_transaction(self, tx_hash):
+        '''
+        通过哈希获得主链某个交易的信息
+        :param tx_hash:
+        :return:
+        '''
+        url = self.host + "/bytom/v3/merchant/transaction?tx_hash={}".format(tx_hash)
         return self._request("GET", url, {})
 
     def get_vapor_chain_status(self):
