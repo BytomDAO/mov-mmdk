@@ -940,14 +940,21 @@ class MovApi(object):
         url = self.host + "/vapor/v3/merchant/transaction?tx_hash={}".format(tx_hash)
         return self._request("GET", url, {})
 
-    def get_main_transaction(self, tx_hash):
+    def list_main_transaction(self, start=0, limit=10):
         '''
-        通过哈希获得主链某个交易的信息
-        :param tx_hash:
+        列出主链所有交易
+        :param address:
+        :param start:
+        :param limit:
         :return:
         '''
-        url = self.host + "/bytom/v3/merchant/transaction?tx_hash={}".format(tx_hash)
-        return self._request("GET", url, {})
+        url = self.host + "bytom/v3/merchant/transactions"
+        params = {
+            "address": self.main_address,
+            "start": start,
+            "limit": limit
+        }
+        return self._request("POST", url, params)
 
     def get_vapor_chain_status(self):
         '''
