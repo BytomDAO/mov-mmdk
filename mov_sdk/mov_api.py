@@ -859,7 +859,7 @@ class MovApi(object):
             "symbol": symbol,
             "amount": str(amount),
             "currency": str(currency),
-            "timestamp": self.generate_timestamp()
+            "time_stamp": self.generate_timestamp()
         }
         data = json.dumps(params).replace(' ', '').encode('utf-8')
         signature_data = xprv_my_sign(self.secret_key, data)
@@ -881,7 +881,7 @@ class MovApi(object):
                 "symbol": symbol,
                 "quantity_proportion": proportion_info["data"],
                 "amount": str(amount),
-                "timestamp": self.generate_timestamp()
+                "time_stamp": self.generate_timestamp()
             }
             data = json.dumps(params).replace(' ', '').encode('utf-8')
             signature_data = xprv_my_sign(self.secret_key, data)
