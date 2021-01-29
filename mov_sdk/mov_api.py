@@ -934,7 +934,7 @@ class MovApi(object):
         :param volume:
         :return:
         '''
-        data = self.build_super_exchange_order(symbol, side, price, volume, deviation)
+        data = self.build_super_exchange_order(symbol, side, price, volume, deviation=0)
         if data:
             if str(data["code"]) == "200":
                 return self._send_super_order_sign(data)
