@@ -925,7 +925,7 @@ class MovApi(object):
             ret.append(data)
         return ret
 
-    def send_super_exchange_order(self, symbol, side, price, volume, deviation):
+    def send_super_exchange_order(self, symbol, side, price, volume, deviation=0):
         '''
         发送超导交易订单
         :param symbol:
