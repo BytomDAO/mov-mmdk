@@ -888,7 +888,7 @@ class MovApi(object):
             path = self.super_url + "/v1/submit-multi-asset-withdrawal?signature={}&address={}".format(signature_data, self.vapor_address)
             return self._request("POST", path, params)
 
-    def build_super_exchange_order(self, symbol, side, price, volume, deviation=0):
+    def build_super_exchange_order(self, symbol, side, price, volume):
         '''
         构建超导交易订单
         :param symbol:
@@ -903,8 +903,7 @@ class MovApi(object):
             "symbol": symbol,
             "side": side,
             "amount": str(volume),
-            "exchange_rate": str(price),
-            "rate_deviation": str(deviation)
+            "exchange_rate": str(price)
         }
         return self._request("POST", path, params)
 
@@ -925,7 +924,7 @@ class MovApi(object):
             ret.append(data)
         return ret
 
-    def send_super_exchange_order(self, symbol, side, price, volume, deviation=0):
+    def send_super_exchange_order(self, symbol, side, price, volume):
         '''
         发送超导交易订单
         :param symbol:
@@ -934,7 +933,7 @@ class MovApi(object):
         :param volume:
         :return:
         '''
-        data = self.build_super_exchange_order(symbol, side, price, volume, deviation)
+        data = self.build_super_exchange_order(symbol, side, price, volume)
         if data:
             if str(data["code"]) == "200":
                 return self._send_super_order_sign(data)
