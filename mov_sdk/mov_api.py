@@ -927,7 +927,7 @@ class MovApi(object):
             ret.append(data)
         return ret
 
-    def send_super_exchange_order(self, symbol, side, price, volume):
+    def send_super_exchange_order(self, symbol, side, price, volume, deviation=0.001):
         '''
         发送超导交易订单
         :param symbol:
@@ -936,7 +936,7 @@ class MovApi(object):
         :param volume:
         :return:
         '''
-        data = self.build_super_exchange_order(symbol, side, price, volume)
+        data = self.build_super_exchange_order(symbol, side, price, volume, deviation)
         if self.check_msg(data):
             return self._send_super_order_sign(data)
         else:
