@@ -15,7 +15,6 @@ from .utxo_manager import address_to_script, Net, Chain
 MOV_REST_TRADE_HOST = "https://ex.movapi.com"
 SUPER_REST_TRADE_HOST = "https://supertx.movapi.com"
 DELEGATION_REST_TRADE_HOST = "https://ex.movapi.com/delegation"
-PLUTUS_REST_TRADE_HOST = "https://ex.movapi.com/plutus"
 
 # networks = ["mainnet", "testnet", "solonet"]
 
@@ -25,7 +24,7 @@ derivation_path = ['2c000000', '99000000', '01000000', '00000000', '01000000']
 class MovApi(object):
     def __init__(self, secret_key="", network=Net.MAIN.value, third_address="", third_public_key="", mnemonic_str="",
                  _MOV_REST_TRADE_HOST="", _BYCOIN_URL="", _SUPER_REST_TRADE_HOST="", _DELEGATIOIN_REST_TRADE_HOST="",
-                 _PLUTUS_REST_TRADE_HOST = "", _third_use_child=False, _bitcoin_address="", _third_main_address=""):
+                 _third_use_child=False, _bitcoin_address="", _third_main_address=""):
         self.headers = {
             'Content-Type': 'application/json; charset=utf-8',
             'Accept': 'application/json',
@@ -52,11 +51,6 @@ class MovApi(object):
             self.delegation_url = _DELEGATIOIN_REST_TRADE_HOST
         else:
             self.delegation_url = DELEGATION_REST_TRADE_HOST
-
-        if _PLUTUS_REST_TRADE_HOST:
-            self.plutus_url = _PLUTUS_REST_TRADE_HOST
-        else:
-            self.plutus_url = PLUTUS_REST_TRADE_HOST
 
         self.session = requests.session()
 
@@ -359,13 +353,16 @@ class MovApi(object):
         :return:
         '''
         data = self.build_order(symbol, side, price, volume, self.vapor_address)
-        if self.check_msg(data):
-            if self.third_address:
-                return self._new_send_order_sign(data)
+        if data:
+            if int(data["code"]) == 200:
+                if self.third_address:
+                    return self._new_send_order_sign(data)
+                else:
+                    path2 = self.host + "/magnet/v3/merchant/submit-place-order-tx?address={}".format(
+                        self.vapor_address)
+                    return self._send_order_sign(path2, data)
             else:
-                path2 = self.host + "/magnet/v3/merchant/submit-place-order-tx?address={}".format(
-                    self.vapor_address)
-                return self._send_order_sign(path2, data)
+                return data
         else:
             return data
 
@@ -411,18 +408,19 @@ class MovApi(object):
             self.vapor_address)
         params = {"order_id": order_id}
         data = self._request("POST", path1, params)
-        if self.check_msg(data):
-            if self.third_address:
-                path2 = self.delegation_url + "/v1/merchant/submit-cancel-order-tx?address={}".format(
-                    self.third_address)
-                data = self._send_cancel_sign(path2, data)
+        if data:
+            if str(data["code"]) == "200":
+                if self.third_address:
+                    path2 = self.delegation_url + "/v1/merchant/submit-cancel-order-tx?address={}".format(
+                        self.third_address)
+                    data = self._send_cancel_sign(path2, data)
+                else:
+                    path2 = self.host + "/magnet/v3/merchant/submit-cancel-order-tx?address={}".format(
+                        self.vapor_address)
+                    data = self._send_cancel_sign(path2, data)
+                return data
             else:
-                path2 = self.host + "/magnet/v3/merchant/submit-cancel-order-tx?address={}".format(
-                    self.vapor_address)
-                data = self._send_cancel_sign(path2, data)
-            return data
-        else:
-            return data
+                return data
 
     def make_transfer_params(self, asset, amount, to_address):
         '''
@@ -461,7 +459,7 @@ class MovApi(object):
                                      "{}/vapor/v3/merchant/submit-payment?address={}".format(self.host,
                                                                                              self.vapor_address),
                                      param=params)
-            if self.check_msg(data):
+            if data and str(data["code"]) == "200":
                 ret.append(data)
             else:
                 print("Error in submit payment:{}".format(data))
@@ -478,14 +476,14 @@ class MovApi(object):
         params = self.make_transfer_params(asset, amount, to_address)
         data = self._request("POST", "{}/vapor/v3/merchant/build-payment?address={}".
                              format(self.host, self.vapor_address), param=params)
-        if self.check_msg(data):
+        if data and str(data["code"]) == "200":
             return self.submit_payment(data)
         return []
 
     def sign_cross_chain(self, params):
         sign_url = self.delegation_url + "/v1/merchant/sign-crosschain-tx?address={}".format(self.vapor_address)
         data = self._request("POST", sign_url, params)
-        if self.check_msg(data):
+        if data and int(data["code"]) == 200:
             return data["data"]
 
     def cross_chain_out(self, asset, amount, address):
@@ -501,7 +499,7 @@ class MovApi(object):
         data = self._request("POST", "{}/vapor/v3/merchant/build-crosschain?address={}".format(self.host,
                                                                                                self.vapor_address),
                              param=params)
-        if self.check_msg(data):
+        if data and str(data["code"]) == "200":
             for info in data["data"]:
                 params = self.mov_sign(info)
                 if self.third_address:
@@ -534,7 +532,7 @@ class MovApi(object):
         data = self._request("POST",
                              "{}/bytom/v3/merchant/build-payment?address={}".format(self.host, self.main_address),
                              param=params)
-        if self.check_msg(data):
+        if data and str(data["code"]) == "200":
             for info in data["data"]:
                 params = self.mov_sign(info)
                 data = self._request("POST",
@@ -786,9 +784,10 @@ class MovApi(object):
         path = self.super_url + "/v1/exchange-rate?symbol={}&amount={}&side={}".format(symbol, volume, side)
         return self._request("GET", path, {})
 
-    def sign_delegation(self, params, sign_url):
+    def sign_delegation_superconducting(self, params):
+        sign_url = self.delegation_url + "/v1/merchant/sign-superconducting-tx?address={}".format(self.vapor_address)
         data = self._request("POST", sign_url, params)
-        if self.check_msg(data):
+        if data and int(data["code"]) == 200:
             return data["data"]
 
     def get_super_asset_proportion(self, symbol):
@@ -920,14 +919,13 @@ class MovApi(object):
         for info in data["data"]:
             params = self.mov_sign(info, is_build_order=True)
             if self.third_address:
-                sign_url = self.delegation_url + "/v1/merchant/sign-superconducting-tx?address={}".format(self.vapor_address)
-                params = self.sign_delegation(params, sign_url)
+                params = self.sign_delegation_superconducting(params)
             if params:
                 data = self._request("POST", url, params)
             ret.append(data)
         return ret
 
-    def send_super_exchange_order(self, symbol, side, price, volume):
+    def send_super_exchange_order(self, symbol, side, price, volume, deviation=0.001):
         '''
         发送超导交易订单
         :param symbol:
@@ -936,11 +934,12 @@ class MovApi(object):
         :param volume:
         :return:
         '''
-        data = self.build_super_exchange_order(symbol, side, price, volume)
-        if self.check_msg(data):
-            return self._send_super_order_sign(data)
-        else:
-            return data
+        data = self.build_super_exchange_order(symbol, side, price, volume, deviation)
+        if data:
+            if str(data["code"]) == "200":
+                return self._send_super_order_sign(data)
+            else:
+                return data
 
     def get_super_conducting_pool_info(self):
         '''
@@ -1061,7 +1060,7 @@ class MovApi(object):
         '''
         ret = []
         data = self.build_flash_swap_order(symbol, side, price, volume)
-        if self.check_msg(data):
+        if data and str(data["code"]) == "200":
             for info in data["data"]:
                 params = self.mov_sign(info, is_build_order=True)
                 new_url = self.host + "/magnet/v3/merchant/submit-swap-order-tx?address={}".format(self.vapor_address)
@@ -1094,377 +1093,7 @@ class MovApi(object):
         return self._request("POST", "{}/vapor/v3/merchant/build-payment?address={}".
                              format(self.host, self.vapor_address), param=params)
 
-    def query_loan_collatreal_amount(self, loan_symbol, loan_amount, collateral_symbol, collateral_rate):
-        '''
-        查询借贷某资产，输入抵押率后，需要抵押多少资产
-        '''
-        params = {
-            "loan_symbol": loan_symbol,
-            "loan_amount": str(loan_amount),
-            "collateral_symbol": collateral_symbol,
-            "collateral_rate": str(collateral_rate)
-        }
-        url = self.plutus_url + "/v1/loan/collateral-amount"
-        return self._request("POST", url, params)
-
-    def query_loan_amount(self, loan_symbol, collateral_symbol, collateral_amount, collateral_rate):
-        '''
-        输入抵押资产，抵押率，查询能借贷多少钱 
-        '''
-        params = {
-            "loan_symbol": loan_symbol,
-            "collateral_amount": str(collateral_amount),
-            "collateral_symbol": collateral_symbol,
-            "collateral_rate": str(collateral_rate)
-        }
-        url = self.plutus_url + "/v1/loan/loan-amount"
-        return self._request("POST", url, params)
-
-    def query_collateral_rate(self, loan_symbol, loan_amount, collateral_symbol, collateral_amount):
-        '''
-        输入借贷资产，借贷资产金额， 抵押资产金额，品种， 计算借贷率
-        '''
-        params = {
-            "loan_symbol": loan_symbol,
-            "loan_amount": str(loan_amount),
-            "collateral_symbol": collateral_symbol,
-            "collateral_amount": str(collateral_amount)
-        }
-        url = self.plutus_url + "/v1/loan/collateral-rate"
-        return self._request("POST", url, params)
-
-    def build_loan_order(self, loan_symbol, loan_amount, collateral_symbol, collateral_amount):
-        '''
-        构建借贷订单
-        '''
-        params = {
-            "loan_symbol": loan_symbol,
-            "loan_amount": str(loan_amount),
-            "collateral_symbol": collateral_symbol,
-            "collateral_amount": str(collateral_amount)
-        }
-        url = self.plutus_url + "/v1/loan/build-loan?address={}".format(self.vapor_address)
-        return self._request("POST", url, params)
-
-    def _new_send_loan_order_sign(self, data):
-        pass
-
-    def send_loan_order(self, loan_symbol, loan_amount, collateral_symbol, collateral_amount):
-        '''
-        发送借贷订单
-        '''
-        data = self.build_loan_order(loan_symbol, loan_amount, collateral_symbol, collateral_amount)
-        if self.check_msg(data):
-            if self.third_address:
-                return self._new_send_loan_order_sign(data)
-            else:
-                path2 = self.plutus_url + "/v1/loan/submit-loan?address={}".format(
-                    self.vapor_address)
-                return self._send_order_sign(path2, data)
-        else:
-            return data
-
-    def query_issued_loans(self, address, symbol=None):
-        '''
-        查询某个地址产生的借贷
-        '''
-        params = {}
-        if symbol:
-            params = {
-                "filter":{
-                    "loan_symbol": symbol
-                }
-            }
-        url = self.plutus_url + "/v1/loan/issued-loans?address={}".format(address)
-        return self._request("POST", url, params)
-
-    def query_completed_loans(self, address, symbol=None):
-        '''
-        查询某个地址以及完成的借贷
-        '''
-        params = {}
-        if symbol:
-            params = {
-                "filter":{
-                    "loan_symbol": symbol
-                }
-            }
-        url = self.plutus_url + "/v1/loan/completed-loans?address={}".format(address)
-        return self._request("POST", url, params)
-
-    def query_address_loan_actions(self, address, loan_id, action_type):
-        '''
-        查询某个地址的借贷记录
-        @param loan_id: 借贷ID
-        @param action_type: 记录类型 collateral、refund、loan、add_collateral、repayment、return
-        '''
-        params = {
-            "loan_id": loan_id,
-            "filter":{
-                "action_type": action_type
-            }
-        }
-        url = self.plutus_url + "/v1/loan/actions?address={}".format(address)
-        return self._request("POST", url, params)
-
-    def build_repayment(self, loan_id, repay_amount, address):
-        '''
-        构建借贷订单 归还债务接口
-        '''
-        params = {
-            "loan_id": loan_id,
-            "repay_amount": str(repay_amount)
-        }
-        url = self.plutus_url + "/v1/loan/build-repayment?address={}".format(address)
-        return self._request("POST", url, params)
-
-    def _new_send_repayment_order_sign(self, data):
-        '''
-        提交托管签名单子
-        :param data:
-        :return:
-        '''
-        ret = []
-        url = self.delegation_url + "/v1/merchant/submit-place-order-tx?address={}".format(self.third_address)
-        for info in data["data"]:
-            params = self.mov_sign(info)
-            data = self._request("POST", url, params)
-            ret.append(data)
-        return ret
-
-    def send_repayment(self, loan_id, repay_amount):
-        '''
-        构建归还债务交易
-        '''
-        data = self.build_repayment(loan_id, repay_amount, self.vapor_address)
-        if self.check_msg(data):
-            if self.third_address:
-                return self._new_send_repayment_order_sign(data)
-            else:
-                path2 = self.plutus_url + "/v1/loan/submit-repayment?address={}".format(
-                    self.vapor_address)
-                return self._send_order_sign(path2, data)
-        else:
-            return data
-
-    def build_add_collateral(self, loan_id, collateral_amount, address):
-        '''
-        构建增加抵押物资产
-        '''
-        params = {
-            "loan_id": loan_id,
-            "collateral_amount": str(collateral_amount)
-        }
-        url = self.plutus_url + "/v1/loan/build-add-collateral?address={}".format(address)
-        return self._request("POST", url, params)
-
-    def _new_add_collateral_order_sign(self, data):
-        pass
-
-    def send_submit_add_collateral(self, loan_id, collateral_amount):
-        '''
-        提交增加抵押资产
-        '''
-        data = self.build_add_collateral(loan_id, collateral_amount, self.vapor_address)
-        if self.check_msg(data):
-            if self.third_address:
-                return self._new_add_collateral_order_sign(data)
-            else:
-                path2 = self.plutus_url + "/v1/loan/submit-add-collateral?address={}".format(
-                    self.vapor_address)
-                return self._send_order_sign(path2, data)
-        else:
-            return data
-
-    def get_loan_statistics(self, address):
-        '''
-        提交得到借贷的账户风险数据
-        '''
-        url = self.plutus_url + "/v1/loan/statistics?address={}".format(address)
-        return self._request("GET", url, address)
-
-    def build_loan_deposit(self, symbol, amount, address):
-        '''
-        构建借贷存入
-        '''
-        url = self.plutus_url + "/v1/pool/build-deposit?address={}".format(address)
-        return self._request("POST", url, address)
-
-    def _new_loan_deposit_sign(self, data):
-        pass
-
-    def send_loan_deposit(self, symbol, amount):
-        '''
-        提交抵押物接口
-        '''
-        data = self.build_loan_deposit(symbol, amount, self.vapor_address)
-        if self.check_msg(data):
-            if self.third_address:
-                return self._new_loan_deposit_sign(data)
-            else:
-                path2 = self.plutus_url + "/v1/loan/submit-deposit?address={}".format(
-                    self.vapor_address)
-                return self._send_order_sign(path2, data)
-        else:
-            return data
-
-    def send_loan_withdral(self, symbol, amount):
-        '''
-        构建借贷提取接口
-        '''
-        params = {
-            "pubkey": get_xpub(self.secret_key),
-            "symbol": symbol,
-            "amount": str(amount),
-            "timestamp": self.generate_timestamp()
-        }
-        data = json.dumps(params).replace(' ', '').encode('utf-8')
-        signature_data = xprv_my_sign(self.secret_key, data)
-        path = self.plutus_url + "/v1/pool/withdrawal?signature={}&address={}".\
-            format(signature_data, self.vapor_address)
-        return self._request("POST", path, params)
-
-    def query_loan_pool(self):
-        '''
-        得到借贷池子的信息
-        '''
-        return self._request("GET", self.plutus_url + "/v1/pool/list", {})
-
-    def query_loan_pool_detail(self, symbol):
-        '''
-        得到借贷池子的细节信息
-        '''
-        return self._request("POST", self.plutus_url + "/v1/list-pools?symbol={}".format(symbol), {})
-
-    def query_operation_history(self, symbol, action_type, address):
-        '''
-        得到对池子的操作历史记录
-        @param action_type: 记录类型 collateral、refund、loan、add_collateral、repayment、return
-        '''
-        params = {
-            "symbol": symbol.lower(),
-            "type": action_type
-        }
-        url = self.plutus_url + "/v1/pool/operation-history?address={}".format(address)
-        return self._request("POST", url, params)
-
-    def query_pool_assets_info(self):
-        '''
-        得到池子的交易信息
-        '''
-        return self._request("GET", self.plutus_url + "/v1/pool/assets", {})
-
-    def query_deposit_statistics(self, address):
-        '''
-        得到存币相关的信息
-        '''
-        return self._request("GET", self.plutus_url + "/v1/deposit/statistics?address={}".format(address), {})
-
-    def query_deposit_market_statistics(self):
-        '''
-        得到市场的统计信息
-        '''
-        return self._request("GET", self.plutus_url + "/v1/market/statistics", {})
-
-    def query_list_auction(self, auction_symbol=None, margin_symbol=None):
-        '''
-        查询所有拍卖列表
-        :return:
-        '''
-        url = self.plutus_url + "/v1/auction/list?limit=100"
-
-        params = {
-          "filter": {
-            "sort":{
-              "by": "created_time",
-              "order": "desc"
-            }
-          }
-        }
-        if auction_symbol:
-            params["filter"]["auction_symbol"] = auction_symbol.upper()
-        if margin_symbol:
-            params["filter"]["margin_symbol"] = margin_symbol
-
-        return self._request("POST", url, params)
-
-    def build_auction_bid_order(self, auction_id):
-        '''
-        构建竞拍交易
-        :param auction_id:
-        :return:
-        '''
-        url = self.plutus_url + "/v1/auction/build-bid?address={}".format(self.vapor_address)
-        params = {
-            "auction_id": auction_id
-        }
-        return self._request("POST", url, params)
-
-    def send_auction_bid_order(self, auction_id):
-        '''
-        构建参与拍卖请求
-        :param auction_id:
-        :return:
-        '''
-        ret = []
-        data = self.build_auction_bid_order(auction_id)
-        if self.check_msg(data):
-            url = self.plutus_url + "/v1/auction/submit-bid?address={}".format(self.vapor_address)
-            for info in data["data"]:
-                params = self.mov_sign(info, is_build_order=True)
-                if self.third_address:
-                    sign_url = self.delegation_url + "/v1/merchant/sign-auction-bid-tx?address={}".format(self.vapor_address)
-                    params = self.sign_delegation(params, sign_url)
-                if params:
-                    data = self._request("POST", url, params)
-                ret.append(data)
-        return ret
-
-    def query_address_list_auctions(self, address, margin_symbol=None, auction_symbol=None):
-        '''
-        查询某个地址的参拍列表
-        :param address:
-        :return:
-        '''
-        url = self.plutus_url + "/v1/auction/bid?address={}&start=0&limit=100".format(address)
-        params = {
-            "filter": {
-                "sort":{
-                    "by": "created_time",
-                    "order": "desc"
-                }
-            }
-        }
-        if margin_symbol:
-            params["filter"]["margin_symbol"] = margin_symbol
-
-        if auction_symbol:
-            params["filter"]["auction_symbol"] = auction_symbol
-
-        return self._request("POST", url, params)
-
-    def query_auction_cleaning(self, address):
-        '''
-        查询某个地址的拍卖清算交易
-        :param address:
-        :return:
-        '''
-        url = self.plutus_url + "/v1/auction/liquidate?address={}".format(address)
-        return self._request("POST", url, {})
-
-    def query_auction_detail(self, auction_id):
-        '''
-        查询某个拍卖详情
-        '''
-        url = self.plutus_url + "/v1/auction/detail"
-        params = {
-            "auction_id": auction_id
-        }
-        return self._request("GET", url, params)
-
     def check_msg(self, data):
         return data and str(data["code"]) == "200"
-
-
 
 
