@@ -4,3 +4,4 @@
 ./build
 ./dist
 ./run_tumbler
+./mov_sdk.egg-info
