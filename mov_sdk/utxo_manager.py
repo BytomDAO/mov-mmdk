@@ -8,7 +8,7 @@ from enum import Enum
 from .key import get_xpub, get_child_xpub, get_seed, get_child_xprv, get_root_xprv, xprv_sign
 from .key import get_entropy, get_mnemonic
 from .receiver import get_main_vapor_address, get_public_key
-from .segwit_addr import decode
+from .segwit_addr import decode, encode
 from .build import P2WPKH_program, P2WSH_program
 
 
@@ -79,6 +79,16 @@ def address_to_script(chain_name, address, net_name):
             return array_hex(P2WPKH_program(decode_hash))
         else:
             return array_hex(P2WSH_program(decode_hash))
+
+
+def address_from_chain_to_chain(address, from_chain_name, to_chain_name, net_name):
+    from_hrp = get_hrp(from_chain_name, net_name)
+    to_hrp = get_hrp(to_chain_name, net_name)
+    data, decoded = decode(from_hrp, address)
+    new_address = encode(to_hrp, data, decoded)
+
+    print(f"{address} --> {new_address}")
+    return new_address
 
 
 class Utxo(object):

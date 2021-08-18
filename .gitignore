@@ -1,7 +1,7 @@
 .DS_Store
 .idea
 
-./build
-./dist
+.build
+.dist
 ./run_tumbler
 ./mov_sdk.egg-info

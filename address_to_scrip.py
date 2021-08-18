@@ -267,15 +267,11 @@ def decode_address(chain_name, address, net_name):
     hrp = address[:one_index]
     if hrp == get_hrp(chain_name, net_name):
         data, decoded = decode(hrp, address)
-        print(data, decoded)
-
-        # print("fuck", encode(hrp, data, decoded))
         return decoded
 
 
 def address_to_script(chain_name, address, net_name):
     decode_hash = decode_address(chain_name, address, net_name)
-
     if decode_hash:
         if len(address) == 42:
             return array_hex(P2WPKH_program(decode_hash))
