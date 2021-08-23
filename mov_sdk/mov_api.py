@@ -20,12 +20,15 @@ PLUTUS_REST_TRADE_HOST = "https://ex.movapi.com/plutus"
 # networks = ["mainnet", "testnet", "solonet"]
 
 derivation_path = ['2c000000', '99000000', '01000000', '00000000', '01000000']
+account_index_int = 1
+address_index_int = 1
 
 
 class MovApi(object):
     def __init__(self, secret_key="", network=Net.MAIN.value, third_address="", third_public_key="", mnemonic_str="",
                  _MOV_REST_TRADE_HOST="", _BYCOIN_URL="", _SUPER_REST_TRADE_HOST="", _DELEGATIOIN_REST_TRADE_HOST="",
-                 _PLUTUS_REST_TRADE_HOST = "", _third_use_child=False, _bitcoin_address="", _third_main_address=""):
+                 _PLUTUS_REST_TRADE_HOST = "", _third_use_child=False, _bitcoin_address="",
+                 _derivation_path = [], _account_index_int=1, _address_index_int=1):
         self.headers = {
             'Content-Type': 'application/json; charset=utf-8',
             'Accept': 'application/json',
@@ -58,6 +61,21 @@ class MovApi(object):
         else:
             self.plutus_url = PLUTUS_REST_TRADE_HOST
 
+        if _derivation_path:
+            self.derivation_path = _derivation_path
+        else:
+            self.derivation_path = derivation_path
+
+        if _account_index_int:
+            self.account_index_int = _account_index_int
+        else:
+            self.account_index_int = account_index_int
+
+        if _address_index_int:
+            self.address_index_int = _address_index_int
+        else:
+            self.address_index_int = address_index_int
+
         self.session = requests.session()
 
         self.network = network
@@ -72,7 +90,6 @@ class MovApi(object):
 
         self.mnemonic_str = mnemonic_str
         self.third_address = third_address
-        self.third_main_address = _third_main_address
         self.third_public_key = third_public_key
         self.third_use_child = _third_use_child
 
@@ -91,6 +108,9 @@ class MovApi(object):
         self.id_asset_dict = {}
         self.all_pairs = set([])
         self.get_all_pairs()
+
+    def get_secret_key(self):
+        return self.secret_key if not self.third_use_child else self.child_secret_key
 
     def get_all_pairs(self):
         '''
@@ -162,11 +182,11 @@ class MovApi(object):
         :return:
         '''
         if self.secret_key:
-            self.main_address, self.vapor_address = get_main_vapor_address(self.secret_key, self.network)
+            self.main_address, self.vapor_address = get_main_vapor_address(self.secret_key, self.network, self.account_index_int, self.address_index_int)
             self.bytom_script = address_to_script(Chain.BYTOM.value, self.main_address, self.network)
             self.vapor_script = address_to_script(Chain.VAPOR.value, self.vapor_address, self.network)
             self.public_key = self.get_child_pub_key()
-            self.child_secret_key = get_child_xprv(self.secret_key, derivation_path)
+            self.child_secret_key = get_child_xprv(self.secret_key, self.derivation_path)
             self.set_third_info()
 
     def _request(self, method, url, param):
@@ -194,7 +214,7 @@ class MovApi(object):
         :return:
         '''
         xpub_hexstr = get_xpub(self.secret_key)
-        child_xpub = get_child_xpub(xpub_hexstr, derivation_path)
+        child_xpub = get_child_xpub(xpub_hexstr, self.derivation_path)
         return get_public_key(child_xpub)
 
     def get_secret_key_from_mnemonic(self, mnemonic_str):
@@ -230,11 +250,8 @@ class MovApi(object):
         获得主链地址
         :return:
         '''
-        if self.third_main_address:
-            param = {"address": self.third_main_address}
-        else:
-            param = {"address": self.main_address}
-        url = self.host + "/bytom/v3/account/address"
+        param = {"address": self.main_address}
+        url = self.host + "/bycoin/bytom2/v1/account/address"
         return self._request("GET", url, param)
 
     def get_exchange_info(self):
@@ -308,6 +325,17 @@ class MovApi(object):
                 }
         return params
 
+    def _send_payment(self, params):
+        '''
+        发送签名的转账相关交易到对应的地址
+        '''
+        if self.third_address:
+            return self._request("POST", "{}/v1/merchant/submit-withdrawal-tx?address={}".format(
+                    self.delegation_url, self.vapor_address), param=params)
+        else:
+            return self._request("POST", self.host + "/vapor/v3/merchant/submit-payment?address={}".format(
+                self.vapor_address), params)
+
     def _send_order_sign(self, url, data):
         '''
         发送磁力签名交易
@@ -322,8 +350,7 @@ class MovApi(object):
             i = i + 1
             params = self.mov_sign(info)
             if i < len_datas:
-                data = self._request("POST", self.host + "/vapor/v3/merchant/submit-payment?address={}".format(
-                    self.vapor_address), params)
+                data = self._send_payment(params)
             else:
                 data = self._request("POST", url, params)
             ret.append(data)
@@ -361,27 +388,14 @@ class MovApi(object):
         data = self.build_order(symbol, side, price, volume, self.vapor_address)
         if self.check_msg(data):
             if self.third_address:
-                return self._new_send_order_sign(data)
+                path2 = self.delegation_url + "/v1/merchant/submit-place-order-tx?address={}".format(self.third_address)
+                return self._send_order_sign(path2, data)
             else:
                 path2 = self.host + "/magnet/v3/merchant/submit-place-order-tx?address={}".format(
                     self.vapor_address)
                 return self._send_order_sign(path2, data)
         else:
             return data
-
-    def _new_send_order_sign(self, data):
-        '''
-        提交托管签名单子
-        :param data:
-        :return:
-        '''
-        ret = []
-        url = self.delegation_url + "/v1/merchant/submit-place-order-tx?address={}".format(self.third_address)
-        for info in data["data"]:
-            params = self.mov_sign(info)
-            data = self._request("POST", url, params)
-            ret.append(data)
-        return ret
 
     def _send_cancel_sign(self, url, data):
         '''
@@ -441,6 +455,18 @@ class MovApi(object):
         }
         return params
 
+    def make_trasfer_params_bytom2(self, asset, amount):
+        '''
+        构建bytom2.0 的转账提交交易参数
+        '''
+        params = {
+            "asset": self.asset_id_dict[asset.upper()],
+            "unconfirmed": False,
+            "amount": str(amount),
+            "forbid_chain_tx": False
+        }
+        return params
+
     def submit_payment(self, data):
         '''
         提交基础交易、转账类支付
@@ -450,17 +476,7 @@ class MovApi(object):
         ret = []
         for info in data["data"]:
             params = self.mov_sign(info)
-            if self.third_address:
-                data = self._request("POST",
-                                     "{}/v1/merchant/submit-withdrawal-tx?address={}".format(
-                                         self.delegation_url,
-                                         self.vapor_address),
-                                     param=params)
-            else:
-                data = self._request("POST",
-                                     "{}/vapor/v3/merchant/submit-payment?address={}".format(self.host,
-                                                                                             self.vapor_address),
-                                     param=params)
+            data = self._send_payment(params)
             if self.check_msg(data):
                 ret.append(data)
             else:
@@ -521,53 +537,22 @@ class MovApi(object):
         path = self.host + "/vapor/v3/q/cross-out-fee?symbol={}".format(asset.lower())
         return self._request("GET", path, {})
 
-    def bytom_transfer(self, asset, amount, address):
+    def cross_chain_in(self, asset, amount):
         '''
-        主链转账
-        :param asset:
-        :param amount:
-        :param address:
-        :return:
+        主链跨链
         '''
-        params = self.make_transfer_params(asset, amount, address)
+        params = self.make_trasfer_params_bytom2(asset, amount)
         ret = []
         data = self._request("POST",
-                             "{}/bytom/v3/merchant/build-payment?address={}".format(self.host, self.main_address),
+                             "{}/bycoin/bytom2/v1/merchant/build-crosschain?address={}".format(self.host, self.main_address),
                              param=params)
+
         if self.check_msg(data):
             for info in data["data"]:
                 params = self.mov_sign(info)
-                data = self._request("POST",
-                                     "{}/bytom/v3/merchant/submit-payment?address={}".format(self.host,
-                                                                                             self.main_address),
-                                     param=params)
+                data = self._request("POST","{}/bycoin/bytom2/v1/merchant/submit-payment?address={}".format(self.host, self.main_address), param=params)
                 ret.append(data)
         return ret
-
-    def cross_chain_in(self, asset, amount):
-        '''
-        跨链跨入
-        :param amount:
-        :return:
-        '''
-        return self.bytom_transfer(asset, amount, "bm1qlp5zd4jqsy8tpz3tldcxuqyjyulqt6d860t3l82n7nmvct3ad34qfktwv7")
-
-    def get_crosschain_status(self, asset_id, tx_hash, hash_side="from_tx_hash"):
-        '''
-        获得跨链状态
-        :param asset_id:
-        :param tx_hash:
-        :param hash_side:
-        :return:
-        '''
-        if (hash_side != "from_tx_hash") & (hash_side != "to_tx_hash"):
-            return False
-        param = {
-            "asset_id": asset_id,
-            hash_side: tx_hash
-        }
-        path = self.host + "/federation/v1/get-crosschain-status"
-        return self._request("POST", path, param)
 
     def query_list_orders(self, order_id_list, states=["open", "partial", "canceled", "filled", "submitted"]):
         '''
@@ -807,7 +792,7 @@ class MovApi(object):
         path = self.super_url + "/v1/single-asset-available?address={}".format(self.vapor_address)
         return self._request("GET", path, {})
 
-    def get_multi_asset_available(self, address):
+    def get_multi_asset_available(self):
         '''
         获得超导多资产可用余额信息
         :param address:
@@ -860,7 +845,7 @@ class MovApi(object):
             "symbol": symbol,
             "amount": str(amount),
             "currency": str(currency),
-            "time_stamp": self.generate_timestamp()
+            "timestamp": self.generate_timestamp()
         }
         data = json.dumps(params).replace(' ', '').encode('utf-8')
         signature_data = xprv_my_sign(self.secret_key, data)
@@ -882,11 +867,12 @@ class MovApi(object):
                 "symbol": symbol,
                 "quantity_proportion": proportion_info["data"],
                 "amount": str(amount),
-                "time_stamp": self.generate_timestamp()
+                "timestamp": self.generate_timestamp()
             }
             data = json.dumps(params).replace(' ', '').encode('utf-8')
             signature_data = xprv_my_sign(self.secret_key, data)
-            path = self.super_url + "/v1/submit-multi-asset-withdrawal?signature={}&address={}".format(signature_data, self.vapor_address)
+            path = self.super_url + "/v1/submit-multi-asset-withdrawal?signature={}&address={}"\
+                .format(signature_data, self.vapor_address)
             return self._request("POST", path, params)
 
     def build_super_exchange_order(self, symbol, side, price, volume, deviation=0.001):
@@ -952,39 +938,25 @@ class MovApi(object):
 
     def get_transaction(self, tx_hash):
         '''
-        通过哈希获得侧链某个交易的信息
+        通过哈希获得某个交易的信息
         :param tx_hash:
         :return:
         '''
         url = self.host + "/vapor/v3/merchant/transaction?tx_hash={}".format(tx_hash)
         return self._request("GET", url, {})
 
-    def list_main_transactions(self, start=0, limit=1000):
-        '''
-        列出主链交易
-        :param address:
-        :param start:
-        :param limit:
-        :return:
-        '''
-        url = self.host + "/bytom/v3/merchant/transactions?address={}&start={}&limit={}".format(self.main_address, start, limit)
-        params = {
-            "pubkey": self.public_key
-        }
-        return self._request("POST", url, params)
-
     def get_vapor_chain_status(self):
         '''
-        获得侧链状态
+        获得vapor chain status状态
         '''
-        url = self.host + "/vapor/v3/q/chain-status"
+        url = "http://ex.movapi.com/vapor/v3/q/chain-status"
         return self._request("GET", url, {})
 
     def get_btm_chain_status(self):
         '''
-        获得主链状态
+        获得btm chain status状态
         '''
-        url = self.host + "/bytom/v3/q/chain-status"
+        url = "http://ex.movapi.com/bytom/v3/q/chain-status"
         return self._request("GET", url, {})
 
     def list_utxos(self, asset, limit=10):
@@ -1040,7 +1012,6 @@ class MovApi(object):
         :param volume:
         :return:
         '''
-        #self.flash_url = "http://52.82.57.178:3002"
         url = self.flash_url + "/flashswap/v3/swap?address={}".format(self.vapor_address)
         params = {
             "amount": str(volume),
@@ -1070,30 +1041,6 @@ class MovApi(object):
             return ret
         return []
 
-    def build_main_chain_payment(self, asset, amount, to_address):
-        '''
-        构建主链转账
-        :param asset:
-        :param amount:
-        :param to_address:
-        :return:
-        '''
-        params = self.make_transfer_params(asset, amount, to_address)
-        return self._request("POST", "{}/bytom/v3/merchant/build-payment?address={}".
-                             format(self.host, self.main_address), param=params)
-
-    def build_vapor_chain_payment(self, asset, amount, to_address):
-        '''
-        构建侧链转账
-        :param asset:
-        :param amount:
-        :param to_address:
-        :return:
-        '''
-        params = self.make_transfer_params(asset, amount, to_address)
-        return self._request("POST", "{}/vapor/v3/merchant/build-payment?address={}".
-                             format(self.host, self.vapor_address), param=params)
-
     def query_loan_collatreal_amount(self, loan_symbol, loan_amount, collateral_symbol, collateral_rate):
         '''
         查询借贷某资产，输入抵押率后，需要抵押多少资产
@@ -1109,7 +1056,7 @@ class MovApi(object):
 
     def query_loan_amount(self, loan_symbol, collateral_symbol, collateral_amount, collateral_rate):
         '''
-        输入抵押资产，抵押率，查询能借贷多少钱 
+        输入抵押资产，抵押率，查询能借贷多少钱
         '''
         params = {
             "loan_symbol": loan_symbol,
@@ -1413,7 +1360,7 @@ class MovApi(object):
             for info in data["data"]:
                 params = self.mov_sign(info, is_build_order=True)
                 if self.third_address:
-                    sign_url = self.delegation_url + "/v1/merchant/sign-auction-bid-tx?address={}".format(self.vapor_address)
+                    sign_url = self.delegation_url + "/v1/merchant/sign-plutus-bid-tx?address={}".format(self.vapor_address)
                     params = self.sign_delegation(params, sign_url)
                 if params:
                     data = self._request("POST", url, params)
@@ -1464,7 +1411,4 @@ class MovApi(object):
 
     def check_msg(self, data):
         return data and str(data["code"]) == "200"
-
-
-
 
