@@ -120,11 +120,11 @@ def get_control_program(account_index_int, address_index_int, change_bool, xpub_
 def get_address(control_program_hexstr, network_str):
     public_key_hash_hexstr = control_program_hexstr[4:]
     if network_str == 'mainnet':
-        hrp = 'bm'
+        hrp = 'bn'
     elif network_str == 'testnet':
-        hrp = 'tm'
+        hrp = 'tn'
     else:
-        hrp = 'sm'
+        hrp = 'sn'
     address_str = encode(hrp, 0, bytes.fromhex(public_key_hash_hexstr))
     return address_str
 
@@ -190,10 +190,8 @@ def get_new_address(xpub_hexstr, account_index_int, address_index_int, change_bo
     }
 
 
-def get_main_vapor_address(private_key, network):
+def get_main_vapor_address(private_key, network, account_index_int=1, address_index_int=1):
     xpub_hexstr = get_xpub(private_key)
-    account_index_int = 1
-    address_index_int = 1
     change_bool = False
     data = get_new_address(xpub_hexstr, account_index_int, address_index_int, change_bool, network)
     return data["address"], data["vapor_address"]
