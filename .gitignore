@@ -5,3 +5,7 @@
 .dist
 ./run_tumbler
 .mov_sdk.egg-info
+
+build
+dist
+mov_sdk.egg-info
