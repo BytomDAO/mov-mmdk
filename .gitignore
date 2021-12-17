@@ -14,3 +14,4 @@ mov_sdk.egg-info
 .tumbler/*.json
 .tumbler
 __pycache__
+*.pyc
