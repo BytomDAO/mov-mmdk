@@ -219,9 +219,9 @@ from bmc_sdk.bmc_client import BmcClient, EthNet, Direction
 
 def run_v2():
     btm_client = BmcClient(address="Your Address",
-                             private_key="Your secret key",
-                             network=EthNet.BmcTestNet.value,
-                             provider="", version=2)
+                           private_key="Your secret key",
+                           network=EthNet.BmcTestNet.value,
+                           provider="", version=2)
 
     price = btm_client.get_buy_price(symbol="mag_btm", volume=0.01)
     print(price)
@@ -234,9 +234,9 @@ def run_v2():
 
 def run_v3():
     btm_client = BmcClient(address="Your Address",
-                             private_key="Your secret key",
-                             network=EthNet.BmcTestNet.value,
-                             provider="", version=3)
+                           private_key="Your secret key",
+                           network=EthNet.BmcTestNet.value,
+                           provider="", version=3)
 
     price = btm_client.get_buy_price(symbol="mag_btm", volume=0.01)
     print(price)
