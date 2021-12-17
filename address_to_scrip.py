@@ -289,12 +289,12 @@ def address_from_chain_to_chain(address, from_chain_name, to_chain_name, net_nam
     return new_address
 
 
-print(address_from_chain_to_chain(
-    address="tm1q5zjfmndnexlx79n98wmjk6mhdd33qfwxv7pm3g",
-    from_chain_name=Chain.BYTOM.value,
-    to_chain_name=Chain.BYTOM2.value,
-    net_name=Net.TEST.value
-))
+# print(address_from_chain_to_chain(
+#     address="tm1q5zjfmndnexlx79n98wmjk6mhdd33qfwxv7pm3g",
+#     from_chain_name=Chain.BYTOM.value,
+#     to_chain_name=Chain.BYTOM2.value,
+#     net_name=Net.TEST.value
+# ))
 
 # print(address_to_script("btm2", "tn1q5zjfmndnexlx79n98wmjk6mhdd33qfwx78xt4w", "testnet"))
 #

@@ -15,6 +15,7 @@ setup(
     description='MOV Trading SDK',  # 简单描述
     long_description=long_description,
     include_package_data=True,
+    package_data={'': ['*.abi']},
     #packages=['mov_sdk'],
     packages=find_packages(exclude=["example"]),  # 包
     classifiers=[
