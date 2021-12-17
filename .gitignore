@@ -13,3 +13,4 @@ mov_sdk.egg-info
 .tumbler/strategy_run_log
 .tumbler/*.json
 .tumbler
+__pycache__
