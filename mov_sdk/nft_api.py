@@ -14,7 +14,8 @@ from .receiver import get_main_vapor_address, get_public_key
 from .utxo_manager import address_to_script, Net, Chain
 
 
-NFT_API_ROOT = "http://47.100.237.157:3000/nft/v1"
+NFT_API_MAIN_ROOT = "https://bcapi.movapi.com/nft/v1"
+NFT_API_TEST_ROOT = "https://test-bcapi.movapi.com/nft/v1"
 
 
 MOV_REST_TRADE_HOST = "https://ex.movapi.com"
@@ -65,7 +66,10 @@ class NftApi(object):
         if _NFT_REST_TRADE_HOST:
             self.nft_rest_trade_host = _NFT_REST_TRADE_HOST
         else:
-            self.nft_rest_trade_host = NFT_API_ROOT
+            if network == Net.MAIN.value:
+                self.nft_rest_trade_host = NFT_API_ROOT
+            else:
+                self.nft_rest_trade_host = NFT_API_TEST_ROOT
 
         if _PLUTUS_REST_TRADE_HOST:
             self.plutus_url = _PLUTUS_REST_TRADE_HOST
@@ -310,25 +314,6 @@ class NftApi(object):
         url = self.nft_rest_trade_host + "/assets"
         return self._request(method="GET", url=url, param={})
 
-    def mint_nfts(self, name, royalty_rate, amount, asset, desc, file_md5, file_path):
-        '''
-        铸造NFT
-        '''
-        url = self.nft_rest_trade_host + "/mint-nft"
-        req = {
-            "name": name,
-            "royalty_rate": royalty_rate,
-            "margin": {
-                "amount": str(amount),
-                "asset": str(asset)
-            },
-
-            "desc": desc,
-            "file_md5": file_md5,
-            "file_path": file_path
-        }
-        return self._request(method="POST", url=url, param=req)
-
     def artist_rank(self, order="profit", sort="asc", start=0, limit=100):
         '''
         艺术家排行榜
@@ -397,11 +382,11 @@ class NftApi(object):
         params = {"sort_name": "trade_cnt", "order_mode": "desc"}
         return self._request(method="POST", url=url, param=params)
 
-    def fuzzy_search_nfts(self, word, start, limit):
+    def fuzzy_search(self, word, start, limit):
         '''
         市场模糊查询
         '''
-        url = self.nft_rest_trade_host + f"/fuzzy-search-nfts?word={word}&start={start}&limit={limit}"
+        url = self.nft_rest_trade_host + f"/fuzzy-search?word={word}&start={start}&limit={limit}"
         return self._request(method="GET", url=url, param={})
 
     def nft_detail(self, asset):
@@ -423,7 +408,7 @@ class NftApi(object):
         NFT 求购列表
         '''
         url = self.nft_rest_trade_host + f"/nft-offers?nft_asset={nft_asset}&start={start}&limit={limit}"
-        return self._request(method="GET", url=url, param={})
+        return self._request(method="POST", url=url, param={})
 
     def nft_offer(self, tx_hash):
         '''
@@ -435,22 +420,23 @@ class NftApi(object):
     ######### 
     # nft trade
     ########
-    def issue_nft(self, name, content_path, content_md5, royalty_rate, margin_asset, margin_amount, description, thumbnail_file_path):
-        '''
-        发行 nft
-        '''
-        params = {
-            "name": name, 
-            "content_path": content_path,
-            "content_md5": content_md5,
-            "royalty_rate": royalty_rate,
-            "margin_asset": margin_asset,
-            "margin_amount": margin_amount,
-            "description": description,
-            "thumbnail_file_path": thumbnail_file_path
-        }
-        url = self.nft_rest_trade_host + f"/issue-nft?address={self.main_address}"
-        return self._request(method="POST", url=url, param=params)
+    # def issue_nft(self, name, content_path, content_md5, royalty_rate, margin_asset, margin_amount, description, thumbnail_file_path):
+    #     '''
+    #     接口还有问题
+    #     发行 nft
+    #     '''
+    #     params = {
+    #         "name": name, 
+    #         "content_path": content_path,
+    #         "content_md5": content_md5,
+    #         "royalty_rate": royalty_rate,
+    #         "margin_asset": margin_asset,
+    #         "margin_amount": margin_amount,
+    #         "description": description,
+    #         "thumbnail_file_path": thumbnail_file_path
+    #     }
+    #     url = self.nft_rest_trade_host + f"/issue-nft?address={self.main_address}"
+    #     return self._request(method="POST", url=url, param=params)
 
     def build_issue_trade(self, nft_asset, pay_asset, pay_amount, margin_asset, margin_amount):
         '''
