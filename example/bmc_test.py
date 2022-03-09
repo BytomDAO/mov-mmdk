@@ -49,12 +49,15 @@ def run_bmc_wallet_test():
                            provider="", version=2)
     # print(btm_client.get_cross_assets())
     # print(btm_client.get_balance_from_bmc_wallet())
-    print(btm_client.get_token_info_from_bmc_wallet("0x77197f46435d4cf8fb07953ad5ebc98ee6c8e7f1"))
+    # print(btm_client.get_token_info_from_bmc_wallet("0x77197f46435d4cf8fb07953ad5ebc98ee6c8e7f1"))
+    # print(btm_client.get_transaction_from_bmc_wallet("0x8B767C4A39599676CD897aB475d1CbAFE1ae1a8d", "0x09d67e0414af36bcd1276445b95a3dceafcc75c1c5a430c77ded073db9543d6e"))
+    print(btm_client.cross_to_main_chain("0x8B767C4A39599676CD897aB475d1CbAFE1ae1a8d",
+                                         "0x8e173d5115e6706b8c35f80dc005a345da98c1c0",
+                                         1))
 
-
-#run_v2()
-#run_v3()
-#run_test()
+# run_v2()
+# run_v3()
+# run_test()
 run_bmc_wallet_test()
 
 

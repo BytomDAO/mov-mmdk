@@ -82,6 +82,8 @@ class BmcClient(Uniswap):
         data = self._request("POST", url, param=params)
         if self.check_msg(data):
             return self.submit_payment(data)
+        else:
+            print(f"[cross_to_main_chain] check_msg failed:{data}")
         return []
 
     def get_transaction_from_bmc_wallet(self, asset_address, tx_hash):
@@ -89,7 +91,7 @@ class BmcClient(Uniswap):
             "asset_address": asset_address,
             "tx_hash": tx_hash
         }
-        url = self.host + "/transaction"
+        url = self.host + "/bmc/v1/transaction"
         return self._request("POST", url, param=params)
 
     def get_balance_from_bmc_wallet(self):
