@@ -17,8 +17,9 @@ from .utxo_manager import address_to_script, Net, Chain
 NFT_API_MAIN_ROOT = "https://bcapi.movapi.com/nft/v1"
 NFT_API_TEST_ROOT = "https://test-bcapi.movapi.com/nft/v1"
 
-
 MOV_REST_TRADE_HOST = "https://ex.movapi.com"
+MOV_REST_TEST_TRADE_HOST = "https://test-bcapi.movapi.com"
+
 SUPER_REST_TRADE_HOST = "https://supertx.movapi.com"
 DELEGATION_REST_TRADE_HOST = "https://ex.movapi.com/delegation"
 PLUTUS_REST_TRADE_HOST = "https://ex.movapi.com/plutus"
@@ -67,7 +68,7 @@ class NftApi(object):
             self.nft_rest_trade_host = _NFT_REST_TRADE_HOST
         else:
             if network == Net.MAIN.value:
-                self.nft_rest_trade_host = NFT_API_ROOT
+                self.nft_rest_trade_host = NFT_API_MAIN_ROOT
             else:
                 self.nft_rest_trade_host = NFT_API_TEST_ROOT
 
@@ -153,7 +154,7 @@ class NftApi(object):
 
     def get_margin_rate(self, asset):
         asset_id = self.asset_id_dict[asset.upper()]
-        return self.margin_rate_dict[asset]
+        return self.margin_rate_dict[asset_id]
 
     def get_asset_id(self, asset):
         return self.asset_id_dict[asset.upper()]
@@ -455,6 +456,7 @@ class NftApi(object):
     def issue_trade(self, nft_asset, pay_asset, pay_amount, margin_asset, margin_amount):
         # issue_trade
         data =  self.build_issue_trade(nft_asset, pay_asset, pay_amount, margin_asset, margin_amount)
+        print(data)
         ret = []
         if self.check_msg(data):
             for info in data["data"]:
@@ -483,6 +485,7 @@ class NftApi(object):
         直接交易
         '''
         data = self.build_trade(nft_asset, pay_asset, pay_amount, margin_asset, margin_amount)
+        print(data)
         ret = []
         if self.check_msg(data):
             for info in data["data"]:
@@ -532,6 +535,7 @@ class NftApi(object):
 
     def edit_margin(self, nft_asset, amount):
         data = self.build_edit_margin(nft_asset, amount)
+        print(data)
         ret = []
         if self.check_msg(data):
             for info in data["data"]:

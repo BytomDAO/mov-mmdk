@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Direction(Enum):
     """
     Direction of order/trade/position.
@@ -21,6 +22,7 @@ class EthNet(Enum):
 
     BscNet = "bscnet"
     BmcTestNet = "btm_test_net"
+    BmcMainNet = "btm_main_net"
 
 
 ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -54,6 +56,7 @@ _factory_contract_addresses_v2 = {
     EthNet.Xdai.value: "0xA818b4F111Ccac7AA31D0BCc0806d64F2E0737D7",
     EthNet.BscNet.value: "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73",
     EthNet.BmcTestNet.value: "0xe19Ec968c15f487E96f631Ad9AA54fAE09A67C8c",
+    EthNet.BmcMainNet.value: "0x867Ff5e79A13588fC1B2710AE3c0060848a37bc9"
 }
 
 _router_contract_addresses_v2 = {
@@ -64,6 +67,7 @@ _router_contract_addresses_v2 = {
     EthNet.Xdai.value: "0x1C232F01118CB8B424793ae03F870aa7D0ac7f77",
     EthNet.BscNet.value: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
     EthNet.BmcTestNet.value: "0xA46E01606f9252fa833131648f4D855549BcE9D9",
+    EthNet.BmcMainNet.value: "0xE30A8729c40a982d8Fc236eA1d3CFfFa98494056"
 }
 
 _quoter_contract_addr_v3 = {

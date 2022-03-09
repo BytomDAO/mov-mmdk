@@ -54,6 +54,7 @@ class EthClient(object):
             self.address = str_to_addr(address)
         else:
             self.address = eth_account.Account.from_key(self.private_key).address
+        self.str_address = addr_to_str(self.address)
 
         self.network = network
         self.main_symbol = get_main_symbol_from_net(self.network)
@@ -69,7 +70,7 @@ class EthClient(object):
                 Web3.HTTPProvider(self.provider, request_kwargs={"timeout": 60})
             )
 
-            if self.network in [EthNet.BscNet.value, EthNet.BmcTestNet.value]:
+            if self.network in [EthNet.BscNet.value, EthNet.BmcTestNet.value, EthNet.BmcMainNet.value]:
                 self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
         self.w3.middleware_onion.add(middleware.time_based_cache_middleware)

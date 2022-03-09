@@ -10,6 +10,7 @@ net_2_main_symbol_dic = {
     EthNet.MainNet.value: "ETH",
     EthNet.BscNet.value: "BNB",
     EthNet.BmcTestNet.value: "BTM",
+    EthNet.BmcMainNet.value: "BTM"
 }
 
 symbol_2_decimals_mainnet_dict = {
@@ -30,6 +31,12 @@ symbol_2_decimals_btmtest_dic = {
     "BTM": 18,
     "WBTM": 18,
     "MAG": 18,
+}
+
+symbol_2_decimals_btmmain_dic = {
+    "BTM": 18,
+    "WBTM": 18,
+    "MAG": 18
 }
 
 tokens: Dict[str, ChecksumAddress] = {

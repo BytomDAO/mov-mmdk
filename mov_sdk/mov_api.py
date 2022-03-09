@@ -537,22 +537,35 @@ class MovApi(object):
         path = self.host + "/vapor/v3/q/cross-out-fee?symbol={}".format(asset.lower())
         return self._request("GET", path, {})
 
-    def cross_chain_in(self, asset, amount):
-        '''
-        主链跨链
-        '''
-        params = self.make_trasfer_params_bytom2(asset, amount)
+    def _cross_chain_in(self, params):
         ret = []
         data = self._request("POST",
-                             "{}/bycoin/bytom2/v1/merchant/build-crosschain?address={}".format(self.host, self.main_address),
+                             "{}/bycoin/bytom2/v1/merchant/build-crosschain?address={}"
+                             .format(self.host, self.main_address),
                              param=params)
 
         if self.check_msg(data):
             for info in data["data"]:
                 params = self.mov_sign(info)
-                data = self._request("POST","{}/bycoin/bytom2/v1/merchant/submit-payment?address={}".format(self.host, self.main_address), param=params)
+                data = self._request("POST",
+                                     "{}/bycoin/bytom2/v1/merchant/submit-payment?address={}"
+                                     .format(self.host, self.main_address), param=params)
                 ret.append(data)
         return ret
+
+    def cross_chain_in_to_bmc(self, asset, amount, address):
+        '''
+        BTM 主链跨链到 BMC 侧链
+        '''
+        params = self.make_transfer_params(asset, amount, address)
+        return self._cross_chain_in(params)
+
+    def cross_chain_in(self, asset, amount):
+        '''
+        主链跨链
+        '''
+        params = self.make_trasfer_params_bytom2(asset, amount)
+        return self._cross_chain_in(params)
 
     def query_list_orders(self, order_id_list, states=["open", "partial", "canceled", "filled", "submitted"]):
         '''
