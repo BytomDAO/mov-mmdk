@@ -108,10 +108,22 @@ class BmcClient(Uniswap):
     def submit_payment(self, data):
         url = self.host + "/bmc/v1/submit-payment?address={}".format(self.str_address)
         raw_transaction = data["data"]["raw_transaction"]
+        if isinstance(raw_transaction, str):
+            raw_transaction = json.loads(raw_transaction)
+        del raw_transaction["r"]
+        del raw_transaction["v"]
+        del raw_transaction["s"]
+        del raw_transaction["type"]
+        del raw_transaction["hash"]
+        del raw_transaction["input"]
+        del raw_transaction["to"]
+
+        print(raw_transaction)
         signed_txn = self.w3.eth.account.sign_transaction(
             raw_transaction, private_key=self.private_key
         )
         raw_transaction = signed_txn.rawTransaction
+        print(raw_transaction)
         params = {
             "raw_transaction": raw_transaction
         }
