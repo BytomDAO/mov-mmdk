@@ -2,7 +2,10 @@
 
 import requests
 import json
-from web3.types import Wei
+from copy import copy
+
+from web3.types import Wei, HexBytes
+from web3 import Web3
 
 from .util import addr_to_str, get_two_currency
 from .constants import ETH_ADDRESS
@@ -46,6 +49,8 @@ class BmcClient(Uniswap):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36'
         }
 
+        self.default_cross_chain_fee_dic = {}
+
     def _request(self, method, url, param):
         try:
             method = method.upper()
@@ -70,7 +75,16 @@ class BmcClient(Uniswap):
         data = self._request("GET", url, {})
         return data
 
-    def cross_to_main_chain(self, asset_address, cross_address, amount, gas_price="1500000000", cross_fee="0"):
+    def get_default_cross_fee(self, asset_address):
+        if asset_address in self.default_cross_chain_fee_dic.keys():
+            return self.default_cross_chain_fee_dic[asset_address]
+        else:
+            t = self.get_cross_assets()
+            if t:
+                self.default_cross_chain_fee_dic = copy(t)
+            return self.default_cross_chain_fee_dic.get(asset_address, "0")
+
+    def cross_to_main_chain(self, asset_address, cross_address, amount, gas_price=None, cross_fee=None):
         params = {
             "asset_address": asset_address,
             "cross_address": cross_address,
@@ -78,6 +92,15 @@ class BmcClient(Uniswap):
             "gas_price": str(gas_price),
             "cross_fee": str(cross_fee)
         }
+        if gas_price:
+            params["gas_price"] = str(gas_price)
+        else:
+            params["gas_price"] = self.get_gas_price()
+        if cross_fee:
+            params["cross_fee"] = str(cross_fee)
+        else:
+            params["cross_fee"] = self.get_default_cross_fee(asset_address)
+
         url = self.host + "/bmc/v1/build-cross?address={}".format(self.str_address)
         data = self._request("POST", url, param=params)
         if self.check_msg(data):
@@ -107,27 +130,47 @@ class BmcClient(Uniswap):
 
     def submit_payment(self, data):
         url = self.host + "/bmc/v1/submit-payment?address={}".format(self.str_address)
+
+        # btm
+        # {'type': '0x0', 'nonce': '0x2', 'gasPrice': '0x59682f00', 'gas': '0xea60', 'value': '0xde0b6b3a7640000',
+        #  'input': '0x7b2263726f73735f61646472657373223a22626e31716c63396a6866303077396d717364637a75326d3865686568687033776764366c73356e6a6167222c22666565223a2230227d',
+        #  'v': '0x0', 'r': '0x0', 's': '0x0', 'to': '0xf5cd39cc2a42cd19c80ebd60bf5e2446a3dc1548',
+        #  'hash': '0x2f6bf7b2f2449154dd32567db82f0ba149f12096b17e41959c061e229ce4ad27'}
+
+        # sup
+        # {"type": "0x0", "nonce": "0xa", "gasPrice": "0x59682f00", "gas": "0x13880", "value": "0x0",
+        #  "input": "0x23d1e5f2000000000000000000000000f5cd39cc2a42cd19c80ebd60bf5e2446a3dc154800000000000000000000000000000000000000000000000000005af3107a4000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000487b2263726f73735f61646472657373223a22626e31716c63396a6866303077396d717364637a75326d3865686568687033776764366c73356e6a6167222c22666565223a2230227d000000000000000000000000000000000000000000000000",
+        #  "v": "0x0", "r": "0x0", "s": "0x0", "to": "0x77197f46435d4cf8fb07953ad5ebc98ee6c8e7f1",
+        #  "hash": "0x97ccd71418ec05ed894c56ee2b7dcfa3575d745bf27f581159802c68fb0a15b3"}
+
+        # usdt
+
         raw_transaction = data["data"]["raw_transaction"]
+        print(raw_transaction)
         if isinstance(raw_transaction, str):
             raw_transaction = json.loads(raw_transaction)
-        del raw_transaction["r"]
-        del raw_transaction["v"]
-        del raw_transaction["s"]
-        del raw_transaction["type"]
-        del raw_transaction["hash"]
-        del raw_transaction["input"]
-        del raw_transaction["to"]
 
+        raw_transaction = {
+            "from": addr_to_str(self.address),
+            "value": eval(raw_transaction["value"]),
+            "gas": eval(raw_transaction["gas"]),
+            "gasPrice": self.get_gas_price(),
+            "to": Web3.toChecksumAddress(raw_transaction["to"]),
+            "nonce": self.get_latest_nonce(),
+            "data": raw_transaction["input"]
+        }
         print(raw_transaction)
         signed_txn = self.w3.eth.account.sign_transaction(
             raw_transaction, private_key=self.private_key
         )
-        raw_transaction = signed_txn.rawTransaction
+        raw_transaction = HexBytes(signed_txn.rawTransaction).hex()
         print(raw_transaction)
         params = {
-            "raw_transaction": raw_transaction
+            "raw_transaction": raw_transaction[2:]
         }
-        return self._request("POST", url, params)
+        print(params)
+        return None
+        #return self._request("POST", url, params)
 
     def check_msg(self, data):
         return data and str(data["code"]) == "200"

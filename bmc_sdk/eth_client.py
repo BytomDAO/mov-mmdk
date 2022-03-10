@@ -83,6 +83,10 @@ class EthClient(object):
         log_service_manager.info(f"Using {self.w3} ('{self.network}')")
         self.last_nonce: Nonce = self.w3.eth.getTransactionCount(self.address)
 
+    def get_latest_nonce(self):
+        self.last_nonce = self.w3.eth.getTransactionCount(self.address)
+        return self.last_nonce
+
     @staticmethod
     def get_private_key_and_address_from_keystore(keystore_file_path, password=''):
         with open(keystore_file_path) as keyfile:
