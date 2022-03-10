@@ -18,6 +18,8 @@ def run_v2():
     print(btm_client.signed_and_send(transaction, tx_params))
 
     price = btm_client.get_sell_price(symbol="mag_btm", volume=0.01)
+    print(price)
+
     transaction, tx_params = btm_client.trade("mag_btm", Direction.SHORT.value, price, 0.01)
     print(transaction, tx_params)
 
@@ -68,7 +70,7 @@ def run_bmc_wallet_test():
                                          1))
 
 
-# run_v2()
+run_v2()
 # run_v3()
 # run_test()
-run_bmc_wallet_test()
+# run_bmc_wallet_test()
