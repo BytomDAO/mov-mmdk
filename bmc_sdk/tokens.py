@@ -86,6 +86,15 @@ tokens_bmctestnet: Dict[str, ChecksumAddress] = {
     }.items()
 }
 
+tokens_bmcmainnet: Dict[str, ChecksumAddress] = {
+    k: Web3.toChecksumAddress(v)
+    for k, v in {
+        "BTM": Web3.toChecksumAddress("0x0000000000000000000000000000000000000000"),
+        "WBTM": Web3.toChecksumAddress("0xcd109943f45587D589cAE7b66F3FcF4a3097A288"),
+        "SUP": Web3.toChecksumAddress("0x77197f46435D4cf8fB07953ad5ebC98EE6C8E7F1"),
+    }.items()
+}
+
 contract_2_symbol_mainnet_dict = {}
 for k, v in tokens.items():
     contract_2_symbol_mainnet_dict[v] = k
@@ -98,22 +107,29 @@ contract_2_symbol_btmtest_dict = {}
 for k, v in contract_2_symbol_btmtest_dict.items():
     contract_2_symbol_btmtest_dict[v] = k
 
+contract_2_symbol_btmmain_dict = {}
+for k, v in contract_2_symbol_btmmain_dict.items():
+    contract_2_symbol_btmmain_dict[v] = k
+
 net_2_symbol_2_decimals_dict = {
     EthNet.MainNet.value: symbol_2_decimals_mainnet_dict,
     EthNet.BscNet.value: symbol_2_decimals_bsc_dict,
-    EthNet.BmcTestNet.value: symbol_2_decimals_btmtest_dic
+    EthNet.BmcTestNet.value: symbol_2_decimals_btmtest_dic,
+    EthNet.BmcMainNet.value: symbol_2_decimals_btmmain_dic
 }
 
 net_2_symbol_2_contract_dict = {
     EthNet.MainNet.value: tokens,
     EthNet.BscNet.value: tokens_bscnet,
-    EthNet.BmcTestNet.value: tokens_bmctestnet
+    EthNet.BmcTestNet.value: tokens_bmctestnet,
+    EthNet.BmcMainNet.value: tokens_bmcmainnet
 }
 
 net_2_contract_2_symbol_dict = {
     EthNet.MainNet.value: contract_2_symbol_mainnet_dict,
     EthNet.BscNet.value: contract_2_symbol_bscnet_dict,
     EthNet.BmcTestNet.value: contract_2_symbol_btmtest_dict,
+    EthNet.BmcMainNet.value: contract_2_symbol_btmmain_dict
 }
 
 
