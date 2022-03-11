@@ -37,10 +37,13 @@ class BmcClient(Uniswap):
                                         provider=provider, version=version)
         if network == EthNet.BmcMainNet.value:
             self.host = "https://bcapi.movapi.com"
+            self.chain_id = 188
         elif network == EthNet.BmcTestNet.value:
             self.host = "https://test-bcapi.movapi.com"
+            self.chain_id = 189
         else:
             self.host = ""
+            self.chain_id = 0
             log_service_manager.write_log(f"[BmcClient] init failed! network error:{network}")
 
         self.session = requests.session()
@@ -128,26 +131,29 @@ class BmcClient(Uniswap):
         }
         return self._request("POST", url, param=params)
 
+    '''
+    # btm
+    # {'type': '0x0', 'nonce': '0x2', 'gasPrice': '0x59682f00', 'gas': '0xea60', 'value': '0xde0b6b3a7640000',
+    #  'input': '0x7b2263726f73735f61646472657373223a22626e31716c63396a6866303077396d717364637a75326d3865686568687033776764366c73356e6a6167222c22666565223a2230227d',
+    #  'v': '0x0', 'r': '0x0', 's': '0x0', 'to': '0xf5cd39cc2a42cd19c80ebd60bf5e2446a3dc1548',
+    #  'hash': '0x2f6bf7b2f2449154dd32567db82f0ba149f12096b17e41959c061e229ce4ad27'}
+
+    # sup
+    # {"type": "0x0", "nonce": "0xa", "gasPrice": "0x59682f00", "gas": "0x13880", "value": "0x0",
+    #  "input": "0x23d1e5f2000000000000000000000000f5cd39cc2a42cd19c80ebd60bf5e2446a3dc154800000000000000000000000000000000000000000000000000005af3107a4000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000487b2263726f73735f61646472657373223a22626e31716c63396a6866303077396d717364637a75326d3865686568687033776764366c73356e6a6167222c22666565223a2230227d000000000000000000000000000000000000000000000000",
+    #  "v": "0x0", "r": "0x0", "s": "0x0", "to": "0x77197f46435d4cf8fb07953ad5ebc98ee6c8e7f1",
+    #  "hash": "0x97ccd71418ec05ed894c56ee2b7dcfa3575d745bf27f581159802c68fb0a15b3"}
+
+    # usdt
+    # {"type": "0x0", "nonce": "0x10", "gasPrice": "0x12a05f200", "gas": "0xea60", "value": "0x27147114878000",
+    #  "input": "0x7b2263726f73735f61646472657373223a22626e31716c63396a6866303077396d717364637a75326d3865686568687033776764366c73356e6a6167222c22666565223a2230227d",
+    #  "v": "0x0", "r": "0x0", "s": "0x0", "to": "0xf5cd39cc2a42cd19c80ebd60bf5e2446a3dc1548",
+    #  "hash": "0xc53daf3e8bd2d4d7da5af1fbd561289d4d4d7f16e14baafb17fd9271614992ef"}
+
+    '''
     def submit_payment(self, data):
-        # btm
-        # {'type': '0x0', 'nonce': '0x2', 'gasPrice': '0x59682f00', 'gas': '0xea60', 'value': '0xde0b6b3a7640000',
-        #  'input': '0x7b2263726f73735f61646472657373223a22626e31716c63396a6866303077396d717364637a75326d3865686568687033776764366c73356e6a6167222c22666565223a2230227d',
-        #  'v': '0x0', 'r': '0x0', 's': '0x0', 'to': '0xf5cd39cc2a42cd19c80ebd60bf5e2446a3dc1548',
-        #  'hash': '0x2f6bf7b2f2449154dd32567db82f0ba149f12096b17e41959c061e229ce4ad27'}
-
-        # sup
-        # {"type": "0x0", "nonce": "0xa", "gasPrice": "0x59682f00", "gas": "0x13880", "value": "0x0",
-        #  "input": "0x23d1e5f2000000000000000000000000f5cd39cc2a42cd19c80ebd60bf5e2446a3dc154800000000000000000000000000000000000000000000000000005af3107a4000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000487b2263726f73735f61646472657373223a22626e31716c63396a6866303077396d717364637a75326d3865686568687033776764366c73356e6a6167222c22666565223a2230227d000000000000000000000000000000000000000000000000",
-        #  "v": "0x0", "r": "0x0", "s": "0x0", "to": "0x77197f46435d4cf8fb07953ad5ebc98ee6c8e7f1",
-        #  "hash": "0x97ccd71418ec05ed894c56ee2b7dcfa3575d745bf27f581159802c68fb0a15b3"}
-
-        # usdt
-
-
         url = self.host + "/bmc/v1/submit-payment?address={}".format(self.str_address)
-
         raw_transaction = data["data"]["raw_transaction"]
-        print(raw_transaction)
         if isinstance(raw_transaction, str):
             raw_transaction = json.loads(raw_transaction)
 
@@ -158,21 +164,17 @@ class BmcClient(Uniswap):
             "gasPrice": self.get_gas_price(),
             "to": Web3.toChecksumAddress(raw_transaction["to"]),
             "nonce": self.get_latest_nonce(),
-            "data": raw_transaction["input"]
+            "data": raw_transaction["input"],
+            "chainId": self.chain_id
         }
-        print(raw_transaction)
         signed_txn = self.w3.eth.account.sign_transaction(
             raw_transaction, private_key=self.private_key
         )
         raw_transaction = HexBytes(signed_txn.rawTransaction).hex()
-        print(raw_transaction)
         params = {
             "raw_transaction": raw_transaction[2:]
         }
-
-        print(params)
-        return None
-        #return self._request("POST", url, params)
+        return self._request("POST", url, params)
 
     def check_msg(self, data):
         return data and str(data["code"]) == "200"
