@@ -40,7 +40,6 @@ def get_md5_02(file_path):
     return md5
 
 
-# print(oss_upload("a.png"))
 def run():
     filepath_dic = {}
     mnemonic_str = "major skull dinner crucial trip weird thumb grunt absent note motion primary"
