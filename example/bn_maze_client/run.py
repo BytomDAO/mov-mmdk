@@ -23,7 +23,7 @@ def oss_upload(input_path_name, suffix_name= ".png"):
     print('http status: {0} {1}'.format(result.status, image_url))
     # # 请求ID。请求ID是请求的唯一标识，强烈建议在程序日志中添加此参数。
     # print('request_id: {0}'.format(result.request_id))
-    return image_url
+    return new_save_name
 
 
 def get_md5_02(file_path):
