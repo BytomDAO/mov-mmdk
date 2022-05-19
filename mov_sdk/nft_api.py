@@ -230,7 +230,6 @@ class NftApi(object):
             if method in ["GET"]:
                 result = self.session.get(url, params=param, timeout=7, headers=self.headers)
             else:
-                print("_request_encoded_data", encoded_data)
                 result = self.session.post(url, data=encoded_data, timeout=7, headers=self.headers)
 
             if result.status_code != requests.codes.ok:
@@ -473,7 +472,6 @@ class NftApi(object):
         '''
         发行 nft
         '''
-        description = description.replace('", "', '","').replace('": ', '":').replace(', "', ',"')
         timestamp = int(time.time()*1000)
         params = {
             "pubkey": get_xpub(self.secret_key),
@@ -486,12 +484,7 @@ class NftApi(object):
             "margin_amount": str(margin_amount),
             "description": description
         }
-
-        #print(json.dumps(params))
-        #msg = json.dumps(params).replace('", "', '","').replace('": ', '":').replace(', "', ',"')
-        #msg = json.dumps(params).replace('", "', '","').replace('": ', '":').replace(', "', ',"').encode('utf-8')
-        msg = json.dumps(params).replace('", "', '","').replace('": ', '":').replace(', "', ',"').encode('utf-8')
-        #msg = json.dumps(params).replace(' ', '').encode('utf-8')
+        msg = json.dumps(params, ensure_ascii=False).replace('", "', '","').replace('": ', '":').replace(', "', ',"').encode('utf-8')
         xprv_sign_msg = xprv_my_sign(self.secret_key, msg)
         url = self.nft_rest_trade_host + f"/issue-nft?address={self.main_address}&signature={xprv_sign_msg}"
         return self._request_encoded_data(method="POST", url=url, encoded_data=msg)
