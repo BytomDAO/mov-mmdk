@@ -1,15 +1,31 @@
 import time
 import hashlib
 import oss2
+import os
+import codecs
+import json
 
 
 from mov_sdk.nft_api import NftApi, Net
 
 
-def oss_upload(input_path_name, suffix_name= ".png"):
+def load_json(filename):
+    """
+    Load data from json file in temp path.
+    """
+    if os.path.exists(filename):
+        with codecs.open(filename, mode="r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data
+    else:
+        return {}
+
+
+def oss_upload(input_path_name, suffix_name=".png"):
+    js_data = load_json("key.json")
     regin = "oss-cn-shanghai"
-    accessKeyId = ""
-    accessKeySecret = ""
+    accessKeyId = js_data["accessKeyId"]
+    accessKeySecret = js_data["accessKeySecret"]
     bucket_name = "bycoin"
     use_dir = "prod-t-nft/"
 
@@ -49,6 +65,8 @@ def run():
     margin_amount = "0.1"
     btm_asset = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
+    error_out_f = open("error.log", "a")
+    error_out_f.write("new upload task!\n")
     flag = True
     f = open("input.txt", "r")
     for line in f:
@@ -63,10 +81,27 @@ def run():
             filepath = oss_upload(pic_name, suffix_name=".png")
             filepath_dic[pic_name] = filepath
 
-        content_md5 = get_md5_02(pic_name)
-        data = obj.issue_nft(name, filepath, content_md5, royalty_rate, btm_asset, margin_amount, description)
-        print(data)
+        i = 0
+        while i < 5:
+            i = i + 1
+            try:
+                content_md5 = get_md5_02(pic_name)
+                data = obj.issue_nft(name, filepath, content_md5, royalty_rate, btm_asset, margin_amount, description)
+
+                print(data)
+                if int(data["code"]) == 200 and data["data"]["nft_asset"]:
+                    print(f"upload {name} {code} {pic_name} successily!")
+                    break
+                else:
+                    print(f"error {name} {code} {pic_name} failed!")
+                    line = ','.join([str(x) for x in [name, code, pic_name]])
+                    error_out_f.write(line + "\n")
+            except Exception as ex:
+                print(ex)
+            time.sleep(1)
+
     f.close()
+    error_out_f.close()
 
 
 if __name__ == "__main__":

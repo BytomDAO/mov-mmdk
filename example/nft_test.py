@@ -3,16 +3,13 @@ import time
 
 from pprint import pprint
 
-
-from tumbler.encryption import my_decrypt
 from mov_sdk.nft_api import NftApi, Net
-
 
 host = "https://test-bcapi.movapi.com"
 mnemonic_str = ""
 nft_api = NftApi(mnemonic_str=mnemonic_str,
-				_MOV_REST_TRADE_HOST=host,
-				_NFT_REST_TRADE_HOST="http://47.100.237.157:3000/nft/v1", network=Net.TEST.value)
+                 _MOV_REST_TRADE_HOST=host,
+                 _NFT_REST_TRADE_HOST="http://47.100.237.157:3000/nft/v1", network=Net.TEST.value)
 
 # print(nft_api.main_address)
 # print(nft_api.get_main_chain_balance())
@@ -89,4 +86,3 @@ amount = 4
 
 
 # print(nft_api.submit_tx(params))
-

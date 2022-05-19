@@ -315,27 +315,6 @@ class NftApi(object):
         url = self.nft_rest_trade_host + "/assets"
         return self._request(method="GET", url=url, param={})
 
-    # def mint_nfts(self, name, royalty_rate, margin_amount, desc, file_path, asset="btm"):
-    #     '''
-    #     :param name: "#000001"
-    #     :param royalty_rate: "0.015"
-    #     :param margin_amount: "1.0"
-    #     :param desc: "desc"
-    #     :param file_path: "aliyun.oss"
-    #     '''
-    #     url = self.nft_rest_trade_host + f"/mint-nfts?address={self.vapor_address}"
-    #     req_param = {
-    #         "name": name,
-    #         "royalty_rate": royalty_rate,
-    #         "margin": {
-    #             "amount": str(margin_amount),
-    #             "asset": asset
-    #         },
-    #         "desc": desc,
-    #         "file_path": file_path
-    #     }
-    #     return self._request(method="POST", url=url, param=req_param)
-
     def artist_rank(self, order="profit", sort="asc", start=0, limit=100):
         '''
         艺术家排行榜
