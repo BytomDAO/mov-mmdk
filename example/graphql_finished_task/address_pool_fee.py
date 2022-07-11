@@ -53,7 +53,7 @@ def get_btm_num_from_address(address):
         # 计算出该池子的USD 值
         pair_usd_val = float(dic["liquidityTokenBalance"]) / float(dic["pair"]["totalSupply"]) * float(
             dic["pair"]["reserveUSD"])
-        # print(symbol, pair_usd_val)
+        print(symbol, pair_usd_val)
 
         total_usd_val += pair_usd_val
 
