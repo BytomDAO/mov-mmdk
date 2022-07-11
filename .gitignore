@@ -6,6 +6,10 @@
 ./run_tumbler
 .mov_sdk.egg-info
 
+*.jpg
+*.jpeg
+run_batch.py
+input*.txt
 key.json
 build
 dist

@@ -58,37 +58,30 @@ def get_md5_02(file_path):
 
 
 def run():
-    filepath_dic = {}
-    mnemonic_str = "major skull dinner crucial trip weird thumb grunt absent note motion primary"
+    # right
+    # mnemonic_str = "parade call wife arrow income captain all absent solution ocean tackle reason"
     # obj = NftApi(mnemonic_str=mnemonic_str, network=Net.MAIN.value)
+    mnemonic_str = "major skull dinner crucial trip weird thumb grunt absent note motion primary"
     obj = NftApi(mnemonic_str=mnemonic_str, network=Net.TEST.value)
     #description = "sdds !!"
-    description = '''Bearwood-Rabbit:The rabbit comes from the Earth, wearing the M-BEAR jersey, with blue bows and green ears representing its blessings and expectations for a clean earth.
-    Bearwood-Ox: The ox is from Venus, wearing M-BEAR jersey, honest and hardworking, it welcomes every guest who comes to Venus and prepares sweet and delicious milk for them.
-    Bearwood-Horse: The horse comes from Jupiter and wears the M-BEAR jersey, which has a gorgeous rose-red skin and a commanding mane. The horse has an inexhaustible energy, and it will always run freely on Jupiter.
-    Bearwood-Rat: The rat is from Mercury, wearing the M-BEAR  jersey, it has dark skin and a pair of short ears of different colors, who knows how much food it stores in the Mercury dungeon Woolen cloth?
-    Bearwood-Lamb: The lamb is from Mars, wearing the M-BEAR jersey, born with natural curls, kind and simple in nature. The lamb has this pair of quirky horns, and will squint comfortably when being stroked.
-    Bearwood-Puppy: The puppy is from Saturn and wears the M-BEAR  jersey. 8 has a very auspicious meaning in Chinese society. If you see a bear puppy on Saturn, it means that good luck will come soon!
-    Bearwood-Tiger: The tiger is from Uranus and wears the M-BEAR  jersey. Tiger is the guardian of Uranus, and also expressed his best wishes to bear rabbit in the Year of the Tiger on Earth.
-    Bearwood-Dragon: The dragon is from Neptune and wears the M-BEAR  jersey. Dragon loves to swim. He roams freely on Neptune every day. Sometimes you can hear dragon's long cry in the lonely late night. Do you know what it is calling?
-    Bearwood-Pig: The pig is from Pluto and wears the M-BEAR jersey. The biggest joy of pig is to eat snacks every day. As long as there is delicious food, he is always very happy. Do you want to go to Pluto and have a snack with pig?
-    Bearwood-Monkey: The monkey comes from the moon and wears the M-BEAR  jersey. The moon is so beautiful, but the little bear monkey can be very lonely at times. It looks at the earth from the moon every da
-    '''
-    description = '''Earth, wearing the M-BEAR №2 jersey, with blue bows and green ears representing its blessings and expectations for a clean earth.
-Bearwood-Ox: The ox is from Venus, wearing M-BEAR №35 jersey, honest and hardworking, it welcomes every guest who comes to Venus and prepares sweet and delicious milk for them.
-Bearwood-Horse: The horse comes from Jupiter and wears the M-BEAR №20 jersey, which has a gorgeous rose-red skin and a commanding mane. The horse has an inexhaustible energy, and it will always run freely on Jupiter.
-Bearwood-Rat: The rat is from Mercury, wearing the M-BEAR №14 jersey, it has dark skin and a pair of short ears of different colors, who knows how much food it stores in the Mercury dungeon Woolen cloth?
-Bearwood-Lamb: The lamb is from Mars, wearing the M-BEAR №24 jersey, born with natural curls, kind and simple in nature. The lamb has this pair of quirky horns, and will squint comfortably when being stroked.
-Bearwood-Puppy: The puppy is from Saturn and wears the M-BEAR №8 jersey. 8 has a very auspicious meaning in Chinese society. If you see a bear puppy on Saturn, it means that good luck will come soon!
-Bearwood-Tiger: The tiger is from Uranus and wears the M-BEAR №40 jersey. Tiger is the guardian of Uranus, and also expressed his best wishes to bear rabbit in the Year of the Tiger on Earth.
-Bearwood-Dragon: The dragon is from Neptune and wears the M-BEAR №5 jersey. Dragon loves to swim. He roams freely on Neptune every day. Sometimes you can hear dragon’s long cry in the lonely late night. Do you know what it is calling?
-Bearwood-Pig: The pig is from Pluto and wears the M-BEAR №12 jersey. The biggest joy of pig is to eat snacks every day. As long as there is delicious food, he is always very happy. Do you want to go to Pluto and have a snack with pig?
-Bearwood-Monkey: The monkey comes from the moon and wears the M-BEAR №23 jersey. The moon is so beautiful, but the little bear monkey can be very lonely at times. It looks at the earth from the moon every da
-    "我是傻逼"
+    # description = '''Bearwood-Rabbit:The rabbit comes from the Earth, wearing the M-BEAR jersey, with blue bows and green ears representing its blessings and expectations for a clean earth.
+    # Bearwood-Ox: The ox is from Venus, wearing M-BEAR jersey, honest and hardworking, it welcomes every guest who comes to Venus and prepares sweet and delicious milk for them.
+    # Bearwood-Horse: The horse comes from Jupiter and wears the M-BEAR jersey, which has a gorgeous rose-red skin and a commanding mane. The horse has an inexhaustible energy, and it will always run freely on Jupiter.
+    # Bearwood-Rat: The rat is from Mercury, wearing the M-BEAR  jersey, it has dark skin and a pair of short ears of different colors, who knows how much food it stores in the Mercury dungeon Woolen cloth?
+    # Bearwood-Lamb: The lamb is from Mars, wearing the M-BEAR jersey, born with natural curls, kind and simple in nature. The lamb has this pair of quirky horns, and will squint comfortably when being stroked.
+    # Bearwood-Puppy: The puppy is from Saturn and wears the M-BEAR  jersey. 8 has a very auspicious meaning in Chinese society. If you see a bear puppy on Saturn, it means that good luck will come soon!
+    # Bearwood-Tiger: The tiger is from Uranus and wears the M-BEAR  jersey. Tiger is the guardian of Uranus, and also expressed his best wishes to bear rabbit in the Year of the Tiger on Earth.
+    # Bearwood-Dragon: The dragon is from Neptune and wears the M-BEAR  jersey. Dragon loves to swim. He roams freely on Neptune every day. Sometimes you can hear dragon's long cry in the lonely late night. Do you know what it is calling?
+    # Bearwood-Pig: The pig is from Pluto and wears the M-BEAR jersey. The biggest joy of pig is to eat snacks every day. As long as there is delicious food, he is always very happy. Do you want to go to Pluto and have a snack with pig?
+    # Bearwood-Monkey: The monkey comes from the moon and wears the M-BEAR  jersey. The moon is so beautiful, but the little bear monkey can be very lonely at times. It looks at the earth from the moon every da
+    # '''
+    description = '''The rabbit comes from the Earth, wearing the M-BEAR NO.2 jersey, with blue bows and green ears representing its blessings and expectations for a clean earth.
     '''
     #description = "我是傻逼"
-    royalty_rate = "15"
-    margin_amount = "0.1"
+    #royalty_rate = "15"
+    #margin_amount = "0.1"
+    margin_amount = "150"
+    royalty_rate = "3"
     btm_asset = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
     error_out_f = open("error.log", "a")
@@ -96,23 +89,23 @@ Bearwood-Monkey: The monkey comes from the moon and wears the M-BEAR №23 jerse
     flag = True
     f = open("input.txt", "r")
     for line in f:
+        if len(line.strip()) == 0:
+            continue
+
         if flag:
             flag = False
             continue
 
         name, code, pic_name = line.strip().split(',')
-        if pic_name in filepath_dic.keys():
-            filepath = filepath_dic[pic_name]
-        else:
-            filepath = oss_upload(pic_name, suffix_name=".jpg")
-            filepath_dic[pic_name] = filepath
+        pic_name = pic_name + ".jpg"
 
+        filepath = oss_upload(pic_name, suffix_name=".jpg")
         i = 0
         while i < 10:
             i = i + 1
             try:
                 content_md5 = get_md5_02(pic_name)
-                data = obj.issue_nft(name + code, filepath, content_md5, royalty_rate, btm_asset, margin_amount, description)
+                data = obj.issue_nft(name + "#" + code, filepath, content_md5, royalty_rate, btm_asset, margin_amount, description)
 
                 print(data)
                 if int(data["code"]) == 200 and data["data"]["nft_asset"]:

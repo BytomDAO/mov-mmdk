@@ -44,3 +44,10 @@ print(s.main_address)
 msg = json.dumps(params).replace(' ', '').encode('utf-8')
 xprv_sign_msg = xprv_my_sign(s.secret_key, msg)
 print(xprv_sign_msg)
+
+s = NftApi(secret_key="sdsds", network=Net.TEST.value)
+nft_asset = ""
+amount = 0.000001
+data = s.edit_margin(nft_asset, amount)
+print(data)
+

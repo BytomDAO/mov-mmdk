@@ -580,6 +580,7 @@ class NftApi(object):
             "amount": amount
         }
         url = self.nft_rest_trade_host + f"/edit-margin?address={self.main_address}"
+        print(url, params)
         return self._request(method="POST", url=url, param=params)
 
     def edit_margin(self, nft_asset, amount):

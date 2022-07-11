@@ -1,0 +1,39 @@
+
+curl -X POST "https://api.sup.finance/subgraphs/name/davekaj/uniswap" -d '{
+  "operationName": "liquidityPositions",
+  "variables": {
+    "user": "0x34e04379327ec76ad1b77c02f05d4977b6be88fd"
+  },
+  "query": "query liquidityPositions($user: Bytes!) {\n  liquidityPositions(where: {user: $user}) {\n    pair {\n      id\n      reserve0\n      reserve1\n      reserveUSD\n      token0 {\n        id\n        symbol\n        derivedETH\n        __typename\n      }\n      token1 {\n        id\n        symbol\n        derivedETH\n        __typename\n      }\n      totalSupply\n      __typename\n    }\n    liquidityTokenBalance\n    __typename\n  }\n}\n"
+}'
+
+curl -X POST "https://api.sup.finance/subgraphs/name/davekaj/uniswap" -d '{
+  "operationName": "liquidityPositions",
+  "variables": {
+    "user": "0x6C409CEB8f2Afea52698D34493C415B9178d539B"
+  },
+  "query": "query liquidityPositions($user: Bytes!) {\n  liquidityPositions(where: {user: $user}) {\n    pair {\n      id\n      reserve0\n      reserve1\n      reserveUSD\n      token0 {\n        id\n        symbol\n        derivedETH\n        __typename\n      }\n      token1 {\n        id\n        symbol\n        derivedETH\n        __typename\n      }\n      totalSupply\n      __typename\n    }\n    liquidityTokenBalance\n    __typename\n  }\n}\n"
+}'
+
+curl -X POST "https://api.sup.finance/subgraphs/name/davekaj/uniswap" -d '{
+  "operationName": "liquidityPositions",
+  "variables": {
+    "user": "0x6c409ceb8f2afea52698d34493c415b9178d539b"
+  },
+  "query": "query liquidityPositions($user: Bytes!) {\n  liquidityPositions(where: {user: $user}) {\n    pair {\n      id\n      reserve0\n      reserve1\n      reserveUSD\n      token0 {\n        id\n        symbol\n        derivedETH\n        __typename\n      }\n      token1 {\n        id\n        symbol\n        derivedETH\n        __typename\n      }\n      totalSupply\n      __typename\n    }\n    liquidityTokenBalance\n    __typename\n  }\n}\n"
+}'
+
+curl -X POST "https://127.0.0.1:5010/test" -d '{
+  "operationName": "liquidityPositions",
+  "variables": {
+    "user": "0x34e04379327ec76ad1b77c02f05d4977b6be88fd"
+  },
+  "query": "query liquidityPositions($user: Bytes!) {\n  liquidityPositions(where: {user: $user}) {\n    pair {\n      id\n      reserve0\n      reserve1\n      reserveUSD\n      token0 {\n        id\n        symbol\n        derivedETH\n        __typename\n      }\n      token1 {\n        id\n        symbol\n        derivedETH\n        __typename\n      }\n      totalSupply\n      __typename\n    }\n    liquidityTokenBalance\n    __typename\n  }\n}\n"
+}'
+
+curl -X POST "http://127.0.0.1:5010/test" -d '{"abc":"c"}'
+
+curl -X GET "http://127.0.0.1:5010/t" -d '{"abc":"c"}'
+
+curl -X POST "https://api.sup.finance/subgraphs/name/davekaj/uniswap" -d '{"operationName": "liquidityPositions", "variables": {"user": "0x34e04379327ec76ad1b77c02f05d4977b6be88fd"}, "query": "query liquidityPositions($user: Bytes!) {\\n  liquidityPositions(where: {user: $user}) {\\n    pair {\\n      id\\n      reserve0\\n      reserve1\\n      reserveUSD\\n      token0 {\\n        id\\n        symbol\\n        derivedETH\\n        __typename\\n      }\\n      token1 {\\n        id\\n        symbol\\n        derivedETH\\n        __typename\\n      }\\n      totalSupply\\n      __typename\\n    }\\n    liquidityTokenBalance\\n    __typename\\n  }\\n}\\n"}'
+
