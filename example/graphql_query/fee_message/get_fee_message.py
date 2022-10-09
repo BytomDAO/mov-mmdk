@@ -60,7 +60,7 @@ query = '''
 result = run_query(query)
 
 # print the results
-# print('Print Result - {}'.format(result))
+print('Print Result - {}'.format(result))
 # print('#############')
 
 f = open("out.csv", "w")

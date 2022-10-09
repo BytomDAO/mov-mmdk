@@ -18,6 +18,7 @@ mov_sdk.egg-info
 *.log
 tmp
 
+*.csv
 .tumbler/strategy_run_log
 .tumbler/*.json
 .tumbler

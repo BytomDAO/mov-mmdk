@@ -60,7 +60,7 @@ def get_btm_num_from_address(address):
     btm_price_ticker = requests.get(
         "http://bcapi.movapi.com/flashex/v1/swap-assets-info?main_chain=ethereum&symbol=usdt&amount=10")
     price = btm_price_ticker.json()["data"]["price"]
-
+    print("btm_price:", price)
     return total_usd_val / float(price)
 
 
