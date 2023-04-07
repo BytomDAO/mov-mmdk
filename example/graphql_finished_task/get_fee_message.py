@@ -41,7 +41,7 @@ query = '''
 }
 '''
 
-start_date = "2022-12-31"
+start_date = "2023-01-01"
 start_dt = int(time.mktime(time.strptime(start_date, "%Y-%m-%d")))
 run_query_msg = query % start_dt
 result = run_query(run_query_msg)
